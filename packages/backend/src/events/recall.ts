@@ -224,7 +224,7 @@ export async function candidateViews(recalled: Recalled[]): Promise<CandidateVie
     const row = byFact.get(r.factId);
     if (!row) return [];
     // The identity representative stays unchanged. For reading value show exactly the representative
-    // already visible in 精选; a merely scored or still-pending report is not prior reader coverage.
+    // already visible in the selection; a merely scored or still-pending report is not prior reader coverage.
     const selectedMembers = selectedRows.filter((p) => Number(p.fact_id) === r.factId);
     const selected = selectedMembers.length ? pickRepresentative(selectedMembers) : null;
     return [{

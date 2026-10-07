@@ -28,11 +28,11 @@ export default function TermsPage() {
       footer={
         <LegalFooterLinks
           links={[
-            { to: "/privacy", label: "隐私说明" },
-            { to: "/agent", label: "Agent 接入页" },
+            { to: "/privacy", label: "개인정보 처리방침" },
+            { to: "/agent", label: "Agent 연동 페이지" },
             ...webModules().flatMap((m) => m.termsLinks ?? []),
           ]}
-          note={`${POLICY.terms.name} ${TERMS.doc.meta["版本"] ?? ""} · ${TERMS.doc.meta["生效日期"] ?? ""}`}
+          note={`${POLICY.terms.name} ${TERMS.doc.meta["버전"] ?? ""} · ${TERMS.doc.meta["시행일"] ?? ""}`}
         />
       }
     />

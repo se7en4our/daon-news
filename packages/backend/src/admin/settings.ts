@@ -15,10 +15,10 @@ const MAX_QR_BYTES = 2 * 1024 * 1024;
 
 export async function replaceContactQr(input: { slot: keyof ContactSettings; data: Buffer }, actor: string) {
   if (input.slot !== "wechatQr" && input.slot !== "feishuQr") throw new Error("unknown slot");
-  if (input.data.length > MAX_QR_BYTES) throw new Error("二维码图片最大 2MB");
+  if (input.data.length > MAX_QR_BYTES) throw new Error("QR 코드 이미지는 최대 2MB 입니다");
   const meta = await sharp(input.data).metadata().catch(() => null);
-  if (!meta || !["png", "jpeg", "webp"].includes(meta.format ?? "")) throw new Error("需要 PNG、JPG 或 WebP 图片");
-  if ((meta.width ?? 0) < 120 || (meta.height ?? 0) < 120) throw new Error("图片太小，二维码可能扫不出来");
+  if (!meta || !["png", "jpeg", "webp"].includes(meta.format ?? "")) throw new Error("PNG, JPG 또는 WebP 이미지가 필요합니다");
+  if ((meta.width ?? 0) < 120 || (meta.height ?? 0) < 120) throw new Error("이미지가 너무 작아 QR 코드가 인식되지 않을 수 있습니다");
   const ext = meta.format === "jpeg" ? "jpg" : meta.format!;
   const name = `qr-${input.slot === "wechatQr" ? "wechat" : "feishu"}-${sha256(input.data).slice(0, 8)}.${ext}`;
   const dir = path.join(config.dataDir, "uploads");

@@ -107,7 +107,7 @@ test("a case exported from an event reaches the model exactly as the site's own 
   await report(media, g, { suffix: "withdrawn", title: "WITHDRAWN REPORT", hours: 4, visibility: "withdrawn" });
 
   for (const step of ["first digest", "rewrite after a correction"] as const) {
-    if (step === "rewrite after a correction") await sql`UPDATE publications SET summary = '已经更正的摘要' WHERE article_id = ${first}`;
+    if (step === "rewrite after a correction") await sql`UPDATE publications SET summary = '정정된 요약' WHERE article_id = ${first}`;
     const snapshot = path.join(dir, `${step.replace(/\W+/g, "-")}.jsonl`);
     const before = await storyState(g.id);
     const exported = await run(["--stories", g.publicId.toUpperCase(), "--out", snapshot], provider.url);
@@ -121,7 +121,7 @@ test("a case exported from an event reaches the model exactly as the site's own 
 
     assert.equal((await composeStoryDigest(g.id)).updated, true);
     const site = bodies.at(-1)!;
-    assert.ok(step === "first digest" ? site.includes("【新】") : site.includes("经过更正") && site.includes("已经更正的摘要"), step);
+    assert.ok(step === "first digest" ? site.includes("【신규】") : site.includes("수정되었다") && site.includes("정정된 요약"), step);
     const evaluated = await run(["--cases", snapshot, "--out-dir", dir], provider.url);
     assert.equal(evaluated.code, 0, evaluated.stderr);
     assert.equal(bodies.at(-1), site, `${step}: model, system prompt, input and sampling are the site's, byte for byte`);

@@ -11,7 +11,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   return adminGet<AdminAudit>(request, `/api/admin/audit${new URL(request.url).search}`);
 }
 
-export const meta: Route.MetaFunction = () => [{ title: `审计记录 · ${SITE.name} 后台` }];
+export const meta: Route.MetaFunction = () => [{ title: `감사 기록 · ${SITE.name} 관리자` }];
 
 function subjectLink(subject: string | null) {
   if (!subject) return null;
@@ -24,23 +24,23 @@ function subjectLink(subject: string | null) {
 export default function Audit({ loaderData }: Route.ComponentProps) {
   const [sp] = useSearchParams();
   return (
-    <AdminPage title="审计记录" subtitle="所有人工操作：谁、何时、改了什么、为什么。">
+    <AdminPage title="감사 기록" subtitle="모든 수동 작업: 누가, 언제, 무엇을, 왜 바꿨는지.">
       <Form method="get" className="mb-4 flex max-w-xl gap-2">
-        <Input name="action" defaultValue={sp.get("action") ?? ""} placeholder="操作前缀，例如 content. 或 source." aria-label="按操作筛选" />
-        <Input name="subject" defaultValue={sp.get("subject") ?? ""} placeholder="对象，例如 source:openai-blog" aria-label="按对象筛选" />
+        <Input name="action" defaultValue={sp.get("action") ?? ""} placeholder="작업 접두사, 예: content. 또는 source." aria-label="작업으로 필터" />
+        <Input name="subject" defaultValue={sp.get("subject") ?? ""} placeholder="대상, 예: source:openai-blog" aria-label="대상으로 필터" />
       </Form>
       <Card pad={false}>
         <DataTable
           rows={loaderData.rows}
           rowKey={(r) => r.id}
-          empty="没有记录"
+          empty="기록 없음"
           columns={[
-            { key: "t", label: "时间", render: (r) => <span className="num whitespace-nowrap">{bj(r.created_at, true)}</span> },
-            { key: "a", label: "操作", render: (r) => <span className="font-mono text-[12.5px] text-ink">{r.action}</span> },
-            { key: "s", label: "对象", render: (r) => subjectLink(r.subject) },
-            { key: "who", label: "操作人", render: (r) => r.actor },
-            { key: "r", label: "原因", render: (r) => <span className="text-ink-2">{r.reason}</span> },
-            { key: "d", label: "变化", render: (r) => (r.before || r.after ? <Json value={{ before: r.before, after: r.after }} label="前后" /> : null) },
+            { key: "t", label: "시간", render: (r) => <span className="num whitespace-nowrap">{bj(r.created_at, true)}</span> },
+            { key: "a", label: "작업", render: (r) => <span className="font-mono text-[12.5px] text-ink">{r.action}</span> },
+            { key: "s", label: "대상", render: (r) => subjectLink(r.subject) },
+            { key: "who", label: "작업자", render: (r) => r.actor },
+            { key: "r", label: "사유", render: (r) => <span className="text-ink-2">{r.reason}</span> },
+            { key: "d", label: "변화", render: (r) => (r.before || r.after ? <Json value={{ before: r.before, after: r.after }} label="전후" /> : null) },
           ]}
         />
       </Card>

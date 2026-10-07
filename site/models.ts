@@ -1,23 +1,23 @@
-// 这个站用哪些模型。框架自带一个 `default`：环境变量 LLM_BASE_URL / LLM_API_KEY / LLM_MODEL 指定的模型。
-// 这里再列出具名的模型（每个用自己的地址和密钥环境变量），以及每一步默认用哪个；没写的步骤用 default。
-// 部署时还可以用环境变量（PREFILTER_MODEL、SCORE_MODEL……）或后台的“模型与评测”页逐步改选。
+// 이 사이트가 쓰는 모델들. 프레임워크에는 `default` 가 기본 내장되어 있다: 환경 변수 LLM_BASE_URL / LLM_API_KEY / LLM_MODEL 로 지정한 모델.
+// 여기에 이름이 붙은 모델(각자 자신의 주소와 키 환경 변수를 사용)과 각 단계가 기본으로 어떤 것을 쓰는지 더 나열한다. 지정하지 않은 단계는 default 를 쓴다.
+// 배포 시 환경 변수(PREFILTER_MODEL, SCORE_MODEL……)나 관리자의 "모델과 평가" 페이지에서 단계별로 바꿔 지정할 수도 있다.
 
 export interface ModelPreset {
   service: string;
   model: string;
   baseUrlEnv: string;
   apiKeyEnv: string;
-  /** 额外的请求字段，比如短小的结构化任务关掉推理。 */
+  /** 추가 요청 필드. 예: 짧은 구조화 작업에서 추론을 끄기. */
   extra?: Record<string, unknown>;
-  /** 推理模型先想再答，额外给推理留的输出额度（token），加在每一步自己的额度上。default 用环境变量 LLM_REASONING_TOKENS。 */
+  /** 추론 모델은 먼저 생각하고 답한다. 추론용으로 추가로 남겨 두는 출력 토큰(token)이며 각 단계 자체 할당량에 더해진다. default 는 환경 변수 LLM_REASONING_TOKENS 를 쓴다. */
   reasoningTokens?: number;
-  /** 接口支持 JSON 模式。 */
+  /** API 가 JSON 모드를 지원함. */
   jsonMode: boolean;
-  /** 能看图。 */
+  /** 이미지를 볼 수 있음. */
   vision?: boolean;
 }
 
-/** 具名的模型示例（每个要配自己的密钥）。用不上可以删掉。 */
+/** 이름이 붙은 모델 예시(각자 자신의 키를 설정해야 함). 쓰지 않으면 삭제해도 된다. */
 export const PRESETS: Record<string, ModelPreset> = {
   // GLM 5.3 Flash always reasons; the lowest effort keeps short structured tasks fast.
   "glm-5.3-flash": {
@@ -57,7 +57,7 @@ export const PRESETS: Record<string, ModelPreset> = {
 };
 
 /**
- * 每一步默认用的模型（步骤见后台“模型与评测”页），值是上面的名字或 default。没写的步骤用 default。
- * 例：{ score: "glm-5.3-flash-selection", groupReview: "mimo-v2.6-flash" }
+ * 각 단계가 기본으로 쓰는 모델(단계는 관리자 "모델과 평가" 페이지 참고). 값은 위의 이름이나 default. 지정하지 않은 단계는 default 를 쓴다.
+ * 예: { score: "glm-5.3-flash-selection", groupReview: "mimo-v2.6-flash" }
  */
 export const DEFAULTS: Record<string, string> = {};

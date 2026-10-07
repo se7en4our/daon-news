@@ -184,10 +184,10 @@ export function fromHtml(html: string, base: string, source: SourceRow): Candida
   return out;
 }
 
-/** A changelog heading that is only a date, bare or after a short label: "时间: 2026-09-10", "时间：2024-05-17". */
+/** A changelog heading that is only a date, bare or after a short label (e.g. a "time:" prefix in any language). */
 const DATE_HEADING = /^(?:[^\d:：]{1,12}[:：])?\s*(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})日?$/;
 
-/** The day a date heading names, at midnight in the source's offset (Date.parse would read "时间: …" in the host's zone). */
+/** The day a date heading names, at midnight in the source's offset (Date.parse would read a bare "time: …" heading in the host's zone). */
 function headingDate(title: string, utcOffset = "+09:00"): Date | null | undefined {
   const m = DATE_HEADING.exec(title);
   if (!m) return undefined;
@@ -284,7 +284,7 @@ function scriptString(literal: string): string {
 
 /**
  * mimo.xiaomi.com (config.adapter "mimo_home"). The homepage's post rows navigate by script: its HTML has
- * their titles but no links, so the generic parse found only the menu (MiMo Desktop, 简体中文, #paper).
+ * their titles but no links, so the generic parse found only the menu (MiMo Desktop, a language switcher, #paper).
  * The rows are a prop of the homepage's own chunk, `sectionTitle:"Blog", … blogs:[{title:"…",
  * link:"/blog/…", desc:"…"}, …]`; the site's route table names the chunks of path "/" and the runtime's
  * chunk map their files, both in the scripts the homepage loads. A homepage that no longer looks like

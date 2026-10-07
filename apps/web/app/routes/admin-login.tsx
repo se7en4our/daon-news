@@ -8,9 +8,9 @@ import { Wordmark } from "@aihot/site/brand/Logo.tsx";
 import { buttonClass } from "../components/ui/Controls";
 
 const ERRORS: Record<string, string> = {
-  wrong: "密码不对，再试一次。",
-  unset: "还没有设置管理员密码：在 .env 里设置 ADMIN_PASSWORD（至少 12 位），重启后再登录。",
-  "too-many": "尝试次数太多，请 15 分钟后再试。",
+  wrong: "비밀번호가 올바르지 않습니다. 다시 시도해 주세요.",
+  unset: "관리자 비밀번호가 아직 설정되지 않았습니다. .env 파일에 ADMIN_PASSWORD(12자 이상)를 설정하고 재시작한 뒤 로그인해 주세요.",
+  "too-many": "시도 횟수가 너무 많습니다. 15분 후 다시 시도해 주세요.",
 };
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -20,7 +20,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { returnTo: returnTo.startsWith("/admin") ? returnTo : "/admin", error: url.searchParams.get("error"), ...options };
 }
 
-export const meta: Route.MetaFunction = () => [{ title: `登录 · ${SITE.name} 后台` }, { name: "robots", content: "noindex, nofollow" }];
+export const meta: Route.MetaFunction = () => [{ title: `로그인 · ${SITE.name} 관리자` }, { name: "robots", content: "noindex, nofollow" }];
 
 export const headers: Route.HeadersFunction = () => ({ "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" });
 
@@ -32,12 +32,12 @@ export default function AdminLogin() {
       <div className="w-full max-w-[360px]">
         <div className="flex items-center justify-center gap-2">
           <Wordmark size={28} className="text-ink" />
-          <span className="text-[15px] font-semibold text-ink-3">后台</span>
+          <span className="text-[15px] font-semibold text-ink-3">관리자</span>
         </div>
         <form method="post" action="/api/auth/password" className="card mt-8 p-6">
           <input type="hidden" name="return" value={returnTo} />
           <label htmlFor="password" className="block text-[13px] font-medium text-ink-2">
-            管理员密码
+            관리자 비밀번호
           </label>
           <input
             id="password"
@@ -54,17 +54,17 @@ export default function AdminLogin() {
             </p>
           )}
           <button type="submit" className={`${buttonClass("primary", "lg")} mt-5 w-full`}>
-            登录
+            로그인
           </button>
           {feishu && (
             <a href={`/api/auth/feishu?${new URLSearchParams({ return: returnTo })}`} className={`${buttonClass("secondary", "lg")} mt-3 w-full`}>
-              用飞书登录
+              Feishu로 로그인
             </a>
           )}
         </form>
         <p className="mt-6 text-center text-[12px] text-ink-4">
           <a href="/" className="hover:text-ink-2">
-            回到 {SITE.name}
+            {SITE.name}(으)로 돌아가기
           </a>
         </p>
       </div>

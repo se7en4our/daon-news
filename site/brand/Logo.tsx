@@ -1,5 +1,5 @@
-// 站点的字标和圆环标记：页面用 Wordmark 画站名（size 是高度，单位像素），RingMark 是小标记，转起来就是加载动画。
-// 这里用站名排字；有自己的 Logo 时，把 Wordmark 换成你的 SVG（保持同样的参数）。
+// 사이트의 워드마크와 링 마크: 페이지에서는 Wordmark 로 사이트명을 그린다(size 는 높이, 단위는 픽셀). RingMark 는 작은 마크로, 회전시키면 로딩 애니메이션이 된다.
+// 여기서는 사이트명으로 글자를 조판한다. 전용 로고가 있으면 Wordmark 를 본인의 SVG 로 교체한다(동일한 파라미터 유지).
 import { SITE } from "../site.ts";
 
 export function Wordmark({ size = 24, className = "", title = SITE.name }: { size?: number; className?: string; title?: string }) {

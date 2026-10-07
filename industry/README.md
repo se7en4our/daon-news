@@ -1,14 +1,14 @@
-# 行业包
+# 분야 패키지
 
-这个行业的知识都在这里：分类、主题、信源、精选标准和门槛。换一个行业，主要就是改这个文件夹和 [`site/`](../site/)（站名、文案、品牌和页面），步骤见 [把它改成你的行业](../docs/customize.md)。
+이 분야의 지식은 모두 여기에 있습니다: 분류, 주제, 소식원, 엄선 기준과 기준점. 다른 분야로 바꾸려면 주로 이 폴더와 [`site/`](../site/)(사이트 이름, 문안, 브랜드, 페이지)를 고치면 되며, 절차는 [내 분야로 바꾸기](../docs/customize.md)를 참고하세요.
 
-| 文件 | 内容 |
+| 파일 | 내용 |
 |---|---|
-| `taxonomy.ts` | 分类、标签、公司与机构、防止模型写错公司的词表，这个行业最受关注的那类发布（`RELEASE`） |
-| `topics.json` | 主题目录（`/topics`），站点启动时读取 |
-| `sources.json` | 首次启动时导入的示范信源 |
-| `prompts/` | 每一步的提示词：预筛、评分、写作、结构化、归组、事件综述、周报月报、翻译 |
-| `selection.ts` | 入选门槛 |
-| `gold.example.jsonl` | 精选评测样本的格式示例 |
-| `relation-gold.example.jsonl` | 事件关系评测样本的格式示例 |
-| `story-digest-eval.example.jsonl` | 事件综述评测案例的格式示例 |
+| `taxonomy.ts` | 카테고리, 태그, 회사와 기관, 모델이 주체를 틀리게 쓰지 않도록 하는 어휘표, 이 분야에서 가장 주목받는 공개 종류(`RELEASE`) |
+| `topics.json` | 주제 목록(`/topics`), 사이트 시작 시 읽어들임 |
+| `sources.json` | 최초 실행 시 가져오는 예시 소식원 |
+| `prompts/` | 각 단계의 프롬프트: 사전 선별, 평가, 작성, 구조화, 그룹화, 이슈 종합, 주간/월간 리포트, 번역 |
+| `selection.ts` | 선정 기준점 |
+| `gold.example.jsonl` | 엄선 평가 샘플의 형식 예시 |
+| `relation-gold.example.jsonl` | 이슈 관계 평가 샘플의 형식 예시 |
+| `story-digest-eval.example.jsonl` | 이슈 종합 평가 케이스의 형식 예시 |

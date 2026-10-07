@@ -17,10 +17,10 @@ const keys = Object.fromEntries(kinds.map((kind) => [kind, Array.from({ length: 
   return kind === "weekly" ? isoWeekLabel(day) : day;
 })])) as Record<ReportKind, string[]>;
 /** The navigation as the api sends it: the newest 400 issues, each with its number in the whole series. */
-const index = (kind: ReportKind): ReportNavigationEntry[] => keys[kind].map((key, i) => ({ key, issueNumber: i + 1, title: `第${i + 1}期` })).reverse().slice(0, 400);
+const index = (kind: ReportKind): ReportNavigationEntry[] => keys[kind].map((key, i) => ({ key, issueNumber: i + 1, title: `제 ${i + 1}호` })).reverse().slice(0, 400);
 function report(kind: ReportKind, key: string): ReportDetail {
   return {
-    kind, key, issueNumber: keys[kind].indexOf(key) + 1, title: "测试刊物", generatedAt: "2020-01-02T00:00:00Z",
+    kind, key, issueNumber: keys[kind].indexOf(key) + 1, title: "테스트 간행물", generatedAt: "2020-01-02T00:00:00Z",
     lead: null, leadItemId: null, overview: null, highlights: [], sections: [], flashes: [], cover: null, metrics: {}, readingMinutes: 1, prev: null, next: null,
   };
 }
@@ -57,8 +57,8 @@ for (const kind of kinds) {
     const response = await fetch(`${web.origin}/${kind}`);
     assert.equal(response.status, 200, web.logs());
     const visible = masthead(await response.text());
-    assert.match(visible, /第\s*405\s*期/);
-    assert.doesNotMatch(visible, /第\s*400\s*期/);
+    assert.match(visible, /제\s*405\s*호/);
+    assert.doesNotMatch(visible, /제\s*400\s*호/);
   });
 
   test(`the oldest ${kind} issue, outside the navigation, keeps its number`, async () => {
@@ -66,7 +66,7 @@ for (const kind of kinds) {
     assert.ok(!index(kind).some((entry) => entry.key === first));
     const response = await fetch(`${web.origin}/${kind}/${first}`);
     assert.equal(response.status, 200, web.logs());
-    assert.match(masthead(await response.text()), /第\s*1\s*期/);
+    assert.match(masthead(await response.text()), /제\s*1\s*호/);
   });
 
   test(`the ${kind} calendar labels this issue with its own number and makes up none for others`, () => {
@@ -74,17 +74,17 @@ for (const kind of kinds) {
     const { cells } = periodGrid(kind, first, index(kind), 1);
     const current = cells.find((cell) => cell.key === first)!;
     assert.equal(current.state, "current");
-    assert.match(current.label, /第 1 期/);
+    assert.match(current.label, /제 1호/);
     const unlisted = cells.find((cell) => cell.key === keys[kind][1])!;
-    assert.doesNotMatch(unlisted.label, /第 \d+ 期/, "an issue the navigation does not list gets no number");
+    assert.doesNotMatch(unlisted.label, /제 \d+호/, "an issue the navigation does not list gets no number");
     assert.equal(issueNumber(index(kind), keys[kind].at(-1)!), 405);
     const stale = periodGrid(kind, first, [{ key: first, issueNumber: 9 }], 10);
-    assert.match(stale.cells.find((cell) => cell.key === first)!.label, /第 10 期/, "the report's own number wins over an older navigation");
+    assert.match(stale.cells.find((cell) => cell.key === first)!.label, /제 10호/, "the report's own number wins over an older navigation");
   });
 }
 
 test("the daily archive counts every issue, as the masthead numbers them", async () => {
   const response = await fetch(`${web.origin}/daily/archive`);
   assert.equal(response.status, 200, web.logs());
-  assert.match(masthead(await response.text()), /共\s*405\s*期/);
+  assert.match(masthead(await response.text()), /총\s*405\s*호/);
 });

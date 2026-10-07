@@ -27,12 +27,12 @@ const provider = await stub((_hit, req) => {
   const body = JSON.parse(req.body);
   const user = String(body.messages.at(-1).content);
   users.push(user);
-  const ids = [...user.matchAll(/【候选 (C\d+)】/g)].map(m => m[1]);
-  const matching = new Set([...user.matchAll(/【候选 (C\d+)】（该事实已有 \d+ 篇报道；事实标题：(.*)）/g)]
+  const ids = [...user.matchAll(/【후보 (C\d+)】/g)].map(m => m[1]);
+  const matching = new Set([...user.matchAll(/【후보 (C\d+)】\(이 사실에는 이미 \d+편의 보도가 있음; 사실 제목: (.*)\)/g)]
     .filter(m => m[2] === sameOccurrenceTitle).map(m => m[1]));
-  const answer = user.includes("报道 A")
+  const answer = user.includes("보도 A")
     ? { a: "a", b: "b", relation, confidence: 1, difference: "" }
-    : { query: "当前动作", decisions: ids.map(id => ({ id,
+    : { query: "현재 동작", decisions: ids.map(id => ({ id,
       relation: sameOccurrenceTitle ? matching.has(id) ? "SAME_OCCURRENCE" : "UNRELATED" : relation, confidence: 1, note: "" })), selection };
   return { choices: [{ message: { content: JSON.stringify(answer) } }] };
 });
@@ -223,7 +223,7 @@ for (const addsValue of [false, true]) test(`a selected composite supplies readi
   assert.ok(users.at(-1)!.includes(text + "综合首发"));
   assert.ok(users.at(-1)!.includes("末项功能支持输出透明图层"), "the end of a public composite summary remains readable");
   assert.ok(users.at(-1)!.includes("原文核心功能：可调参数、自动资源和多人联机"), "saved original evidence covers facts omitted by a terse summary");
-  assert.doesNotMatch(users.at(-1)!, /【候选 C\d+】/);
+  assert.doesNotMatch(users.at(-1)!, /【후보 C\d+】/);
   assert.equal(result.verdict, "new-story", "the new report owns its identity independently of the reading context");
   assert.equal((await state(background)).fact_id, null);
   assert.equal((await sql`SELECT 1 FROM fact_articles WHERE article_id=${background}`).length, 0);

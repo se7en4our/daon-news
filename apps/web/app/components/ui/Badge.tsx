@@ -11,7 +11,7 @@ const TONES: Record<Tone, string> = {
   neutral: "bg-bg-sunk text-ink-3 border border-line-soft",
 };
 
-/** Small label next to a source or title: 精选, statuses and counts. */
+/** Small label next to a source or title: 엄선, statuses and counts. */
 export function Badge({ tone = "neutral", dot = false, children, className = "", title }: { tone?: Tone; dot?: boolean; children: ReactNode; className?: string; title?: string }) {
   return (
     <span title={title} className={`inline-flex h-[18px] shrink-0 items-center gap-1 rounded-full px-2 text-[11px] font-medium leading-none ${TONES[tone]} ${className}`}>
@@ -21,16 +21,16 @@ export function Badge({ tone = "neutral", dot = false, children, className = "",
   );
 }
 
-/** The "精选" mark on a report. */
+/** The "엄선" mark on a report. */
 export function SelectedBadge() {
   return (
     <Badge tone="selected" dot>
-      精选
+      엄선
     </Badge>
   );
 }
 
 /** A selected report whose fact is shown by another report (the one holding its selected seat). */
 export function SameEventBadge() {
-  return <Badge title="同一新闻已有精选代表">同新闻</Badge>;
+  return <Badge title="같은 뉴스의 엄선 대표가 이미 있습니다">같은 뉴스</Badge>;
 }

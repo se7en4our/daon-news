@@ -20,9 +20,9 @@ function niceStep(max: number): number {
  * drawn in a stretchable SVG and every label is page text, so the axes stay legible on a phone.
  */
 const RANGES = [
-  { hours: 24, label: "24 小时" },
-  { hours: 72, label: "3 天" },
-  { hours: 168, label: "7 天" },
+  { hours: 24, label: "24시간" },
+  { hours: 72, label: "3일" },
+  { hours: 168, label: "7일" },
 ] as const;
 
 /** The points of the last `hours` before the latest one. */
@@ -121,7 +121,7 @@ export function HeatChart({ points: all }: { points: HeatPoint[] }) {
     return { seen, last, peak, change, ticks, x, y, line, area, labels: timeTicks(t0, t1) };
   }, [series]);
   if (!geometry) {
-    return <p className="rounded-tile bg-bg-sunk px-4 py-8 text-center text-[13px] text-ink-4">还没有足够的连续观测数据，暂不绘制趋势。</p>;
+    return <p className="rounded-tile bg-bg-sunk px-4 py-8 text-center text-[13px] text-ink-4">아직 연속 관측 데이터가 충분하지 않아 추이를 그리지 않습니다.</p>;
   }
   const { seen, last, peak, change, ticks, x, y, line, area, labels } = geometry;
   const cur = active !== null ? seen[active] : null;
@@ -139,14 +139,14 @@ export function HeatChart({ points: all }: { points: HeatPoint[] }) {
     <div>
       <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-start sm:justify-between">
         <dl className="grid grid-cols-3 gap-x-5 sm:flex sm:gap-x-10">
-          <Stat label="可比范围当前">
+          <Stat label="비교 범위 현재">
             <span className="mono text-[22px] font-semibold leading-none tracking-[-0.02em] text-ink">{Math.round(last.p!.heat)}</span>
           </Stat>
-          <Stat label="可比范围峰值">
+          <Stat label="비교 범위 최고치">
             <span className="mono text-[22px] font-semibold leading-none tracking-[-0.02em] text-ink">{Math.round(peak.p!.heat)}</span>
             <span className="num text-[12px] text-ink-4">{monthDayTime(new Date(peak.t).toISOString())}</span>
           </Stat>
-          <Stat label="近 24 小时变化">
+          <Stat label="최근 24시간 변화">
             <span className={`mono text-[22px] font-semibold leading-none tracking-[-0.02em] ${change === null ? "text-ink-4" : change > 0 ? "text-hot" : "text-ink"}`}>
               {change === null ? "–" : `${change > 0 ? "+" : ""}${change}%`}
             </span>
@@ -156,7 +156,7 @@ export function HeatChart({ points: all }: { points: HeatPoint[] }) {
           <PillTabs
             size="xs"
             layoutId="heat-range"
-            label="时间范围"
+            label="시간 범위"
             active={String(range!.hours)}
             onSelect={(key) => {
               setActive(null);
@@ -177,7 +177,7 @@ export function HeatChart({ points: all }: { points: HeatPoint[] }) {
         <div
           className="relative size-full touch-pan-y select-none rounded-mark outline-offset-4"
           role="img"
-          aria-label={`热度走势：当前 ${Math.round(last.p!.heat)}，峰值 ${Math.round(peak.p!.heat)}`}
+          aria-label={`인기 추이: 현재 ${Math.round(last.p!.heat)}, 최고치 ${Math.round(peak.p!.heat)}`}
           tabIndex={0}
           onKeyDown={(e) => {
             if (e.key === "ArrowRight") setActive((a) => Math.min(seen.length - 1, a === null ? seen.length - 1 : a + 1));
@@ -223,9 +223,9 @@ export function HeatChart({ points: all }: { points: HeatPoint[] }) {
             >
               <div className="num text-ink-4">{monthDayTime(new Date(cur.t).toISOString())}</div>
               <div className="text-ink-2">
-                热度 <b className="num font-semibold text-ink">{cur.p!.heat.toFixed(1)}</b>
+                인기 <b className="num font-semibold text-ink">{cur.p!.heat.toFixed(1)}</b>
                 <span className="mx-1 text-ink-4">·</span>
-                <span className="num">{cur.p!.participants}</span> 位参与者
+                <span className="num">{cur.p!.participants}</span>명 참여
               </div>
             </div>
           )}
@@ -246,7 +246,7 @@ export function HeatChart({ points: all }: { points: HeatPoint[] }) {
         })}
       </div>
       <p className="mt-4 text-[12px] leading-relaxed text-ink-4">
-        趋势仅比较持续完整观测到的相同主体，范围可能小于当前热度统计。移动指针或点击图表查看每小时热度；键盘可用左右方向键切换。
+        추이는 지속적으로 완전하게 관측된 동일 대상만 비교하므로 범위가 현재 인기 통계보다 작을 수 있습니다. 포인터를 움직이거나 차트를 클릭하면 시간별 인기를 볼 수 있고, 키보드에서는 좌우 방향키로 전환할 수 있습니다.
       </p>
     </div>
   );

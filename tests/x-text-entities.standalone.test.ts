@@ -26,6 +26,6 @@ test("the post title, body and quote share decoding while expanded links and med
   assert.equal(out.title, "Research & development");
   assert.equal(out.xPost?.text, `Research & development\n${expanded}`);
   assert.equal(out.xPost?.quoted?.text, "value < 3 & value > 0");
-  assert.equal(out.bodyText, `Research & development\n${expanded}\n\n【引用 @example】value < 3 & value > 0`);
+  assert.equal(out.bodyText, `Research & development\n${expanded}\n\n[인용 @example] value < 3 & value > 0`);
   assert.equal(out.media?.[0]?.url, "https://example.test/media.png");
 });

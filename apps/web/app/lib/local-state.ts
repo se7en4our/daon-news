@@ -327,7 +327,7 @@ export function clearRecentSearches() {
 const LAST_PAGE_KEY = "aihot:last-page";
 const NOT_A_PLACE = /^\/(feedback|more)(\/|$)|^\/admin(\/|$)/;
 
-/** Called on every in-site navigation: remembers the latest real page, never feedback, "更多" or the admin. */
+/** Called on every in-site navigation: remembers the latest real page, never feedback, "내 메뉴" or the admin. */
 export function rememberPage(path: string) {
   if (!NOT_A_PLACE.test(path)) writeRaw(LAST_PAGE_KEY, path, "session");
 }
@@ -362,15 +362,15 @@ export interface ImportReport {
 
 /** Merge: existing stars are not overwritten, read ids are unioned, theme only if unset. */
 export function importBundle(text: string): ImportReport {
-  if (text.length > IMPORT_MAX_CHARS) throw new Error("文件过大（上限 2,000,000 字符）");
+  if (text.length > IMPORT_MAX_CHARS) throw new Error("파일이 너무 큽니다 (최대 2,000,000자)");
   let data: unknown;
   try {
     data = JSON.parse(text);
   } catch {
-    throw new Error("不是有效的 JSON 文件");
+    throw new Error("유효한 JSON 파일이 아닙니다");
   }
   const d = data as Partial<ExportBundle>;
-  if (!d || typeof d !== "object" || d.version !== 1) throw new Error("文件格式不对（需要 version: 1）");
+  if (!d || typeof d !== "object" || d.version !== 1) throw new Error("파일 형식이 올바르지 않습니다 (version: 1 필요)");
   return mergeLocalData({
     starred: Array.isArray(d.starred) ? d.starred : [],
     read: Array.isArray(d.read) ? d.read : [],
@@ -392,7 +392,7 @@ function starredUnreadable(): boolean {
 function mergeLocalData(incoming: { starred: unknown[]; read: unknown[]; theme: unknown }): ImportReport {
   return editLocalData(() => {
     // The reader's own data stays recoverable (export it, or fix it) rather than replaced by the import.
-    if (starredUnreadable()) throw new Error("这台设备上已有的收藏数据无法读取，为避免覆盖，这次没有导入。");
+    if (starredUnreadable()) throw new Error("이 기기에 이미 있는 북마크 데이터를 읽을 수 없어, 덮어쓰기를 막기 위해 이번에는 가져오지 않았습니다.");
     const current = getStarred();
     const have = new Set(current.map((s) => s.id));
     const additions: LocalStarredItem[] = [];
@@ -408,7 +408,7 @@ function mergeLocalData(incoming: { starred: unknown[]; read: unknown[]; theme: 
     starredSkipped += additions.length - accepted.length;
     const mergedStarred = [...current, ...accepted].sort((a, b) => Date.parse(b.savedAt) - Date.parse(a.savedAt));
     // An import is reported only after it was written; a failure here leaves the browser as it was.
-    if (!writeRaw(KEYS.starred, JSON.stringify(mergedStarred))) throw new Error("浏览器存储已满或不可用，这次没有导入任何内容。");
+    if (!writeRaw(KEYS.starred, JSON.stringify(mergedStarred))) throw new Error("브라우저 저장소가 가득 찼거나 사용할 수 없어, 아무것도 가져오지 않았습니다.");
 
     const readIds = getReadIds();
     const readHave = new Set(readIds);

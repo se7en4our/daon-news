@@ -30,10 +30,10 @@ export const byReportTime = (a: { at: Date }, b: { at: Date }) => a.at.getTime()
  */
 export function buildStoryDigestInput(story: { title: string; digest: string | null }, reports: Omit<DigestReport, "story_id">[], opts: { corrected: boolean; knownArticleIds?: string[] }) {
   const known = new Set(opts.knownArticleIds ?? []);
-  const lines = reports.slice(-40).map((r) => `${opts.corrected || known.has(r.id) ? "" : "【新】"}报道 ${r.id}｜事实 ${r.fact_id}｜${beijingDate(r.at)} ${beijingTime(r.at)}｜${r.source_name}${r.first_party ? "（一手）" : ""}｜${r.title}｜${r.summary ?? ""}\n事实条件与来源证据：${JSON.stringify(digestFactEvidence(r))}`);
+  const lines = reports.slice(-40).map((r) => `${opts.corrected || known.has(r.id) ? "" : "【신규】"}보도 ${r.id}｜사실 ${r.fact_id}｜${beijingDate(r.at)} ${beijingTime(r.at)}｜${r.source_name}${r.first_party ? "(1차)" : ""}｜${r.title}｜${r.summary ?? ""}\n사실 조건과 출처 증거: ${JSON.stringify(digestFactEvidence(r))}`);
   return opts.corrected
-    ? `事件当前标题：${story.title}\n\n报道内容或事实证据经过更正。请只依据下面这些报道的当前内容重写综述，不要沿用以前版本的说法。\n报道（按时间）：\n${lines.join("\n")}`
-    : `事件当前标题：${story.title}\n${story.digest ? `上一版综述：${story.digest}\n` : ""}\n报道（按时间，标【新】的是上一版之后的新报道）：\n${lines.join("\n")}`;
+    ? `이슈 현재 제목: ${story.title}\n\n보도 내용이나 사실 증거가 수정되었다. 아래 보도들의 현재 내용에만 근거해 종합을 다시 쓰고, 이전 버전의 서술을 그대로 이어 쓰지 말라.\n보도(시간순):\n${lines.join("\n")}`
+    : `이슈 현재 제목: ${story.title}\n${story.digest ? `이전 버전 종합: ${story.digest}\n` : ""}\n보도(시간순, 【신규】 표시는 이전 버전 이후의 새 보도):\n${lines.join("\n")}`;
 }
 
 /**

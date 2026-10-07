@@ -47,11 +47,11 @@ export async function collectFindings(now = Date.now()): Promise<Finding[]> {
         out.push({
           key: "content.collect",
           level: "now",
-          title: "网站停止收录新文章",
-          impact: last?.at ? `读者看不到新文章：最后一篇收录于 ${beijingStamp(last.at)}` : "读者看不到新文章：一天内没有收录任何文章",
-          heals: ALERTS.usualFlow ? `没有，${ALERTS.usualFlow}` : "没有",
-          action: "尽快发起一次维护处理",
-          detail: `editorial articles.discovered_at 超过 ${QUIET_MINUTES} 分钟没有新值（热度信号单独评估）；查 sources.schedule、出网代理与采集失败`,
+          title: "사이트가 새 기사 수집을 멈췄습니다",
+          impact: last?.at ? `독자가 새 기사를 볼 수 없습니다: 마지막 수집은 ${beijingStamp(last.at)}` : "독자가 새 기사를 볼 수 없습니다: 하루 동안 수집된 기사가 없습니다",
+          heals: ALERTS.usualFlow ? `아니요, ${ALERTS.usualFlow}` : "아니요",
+          action: "가능한 한 빨리 유지보수 처리를 한 번 실행하세요",
+          detail: `editorial articles.discovered_at 가 ${QUIET_MINUTES}분 넘게 새 값이 없습니다(열기 신호는 별도 평가). sources.schedule, 아웃바운드 프록시, 수집 실패를 확인하세요`,
           since: last?.at ?? undefined,
         });
       }
@@ -65,12 +65,12 @@ export async function collectFindings(now = Date.now()): Promise<Finding[]> {
       out.push({
         key: "content.grouping",
         level: "now",
-        title: "有精选新闻卡在去重确认，暂未发布",
-        impact: `${waiting.length} 条已达到精选条件的新闻等待确认超过 10 分钟，还没进入精选，读者可能晚看到这些更新`,
-        heals: manual ? `${manual} 条需要人工处理后才能恢复${manual < waiting.length ? "；其余仍在自动恢复" : ""}`
-          : receipt ? "仍在等待自动恢复；付费结果未知的请求会在 30 分钟后自动放行一次" : "还会自动重试，但等待已经超过正常范围",
-        action: manual ? "转给 AI 处理；结果未知的付费请求需先核对计费与结果，再决定是否放行" : "转给 AI 检查等待原因，避免继续积压",
-        detail: waiting.slice(0, 8).map((item) => `${item.articleId}（${duration(now - item.since.getTime())}）${item.receiptId ? ` 回执 #${item.receiptId}` : ""}${item.error ? `：${item.error.slice(0, 120)}` : ""}`).join("；"),
+        title: "엄선 뉴스가 중복 제거 확인에 막혀 아직 미발행 상태입니다",
+        impact: `엄선 조건을 충족한 뉴스 ${waiting.length}건이 10분 넘게 확인을 기다리며 아직 엄선에 들지 못해, 독자가 이 업데이트를 늦게 볼 수 있습니다`,
+        heals: manual ? `${manual}건은 수동 처리 후에야 복구됩니다${manual < waiting.length ? ". 나머지는 자동 복구 중입니다" : ""}`
+          : receipt ? "자동 복구를 계속 대기 중입니다. 유료 결과가 불확실한 요청은 30분 뒤 한 번 자동으로 통과됩니다" : "자동 재시도되지만 대기가 이미 정상 범위를 넘었습니다",
+        action: manual ? "AI 에게 넘겨 처리하세요. 결과가 불확실한 유료 요청은 과금과 결과를 먼저 대조한 뒤 통과 여부를 결정하세요" : "AI 에게 넘겨 대기 원인을 점검해 적체가 계속되지 않도록 하세요",
+        detail: waiting.slice(0, 8).map((item) => `${item.articleId}(${duration(now - item.since.getTime())})${item.receiptId ? ` 영수증 #${item.receiptId}` : ""}${item.error ? `: ${item.error.slice(0, 120)}` : ""}`).join(", "),
         since: waiting[0]!.since,
       });
     }
@@ -81,19 +81,19 @@ export async function collectFindings(now = Date.now()): Promise<Finding[]> {
       FROM articles WHERE processing_state IN ('new', 'failed') AND discovered_at > now() - interval '2 days'`;
     if (p!.waiting >= 10 || p!.failed >= 20) {
       const errors = await sql<{ error: string; n: number }[]>`
-        SELECT left(coalesce(processing_error, '（无）'), 120) AS error, count(*)::int AS n FROM articles
+        SELECT left(coalesce(processing_error, '(없음)'), 120) AS error, count(*)::int AS n FROM articles
         WHERE processing_state IN ('new', 'failed') AND discovered_at > now() - interval '3 hours' AND processing_error IS NOT NULL
         GROUP BY 1 ORDER BY 2 DESC LIMIT 3`;
       out.push({
         key: "content.process",
         level: "now",
-        title: "新内容卡住了，进不了网站",
-        impact: [p!.waiting >= 10 && `${p!.waiting} 篇新文章等了 2 小时以上还没处理完`, p!.failed >= 20 && `最近 3 小时 ${p!.failed} 篇新文章处理失败`]
+        title: "새 콘텐츠가 막혀 사이트에 올라오지 못합니다",
+        impact: [p!.waiting >= 10 && `새 기사 ${p!.waiting}건이 2시간 넘게 처리되지 못했습니다`, p!.failed >= 20 && `최근 3시간 동안 새 기사 ${p!.failed}건이 처리에 실패했습니다`]
           .filter(Boolean)
-          .join("；") + "，精选和热点会缺内容",
-        heals: p!.waiting >= 10 ? "服务恢复后会自动补处理" : "不会，需要修好后重新处理这些文章",
-        action: "转给 AI 处理",
-        detail: errors.map((e) => `${e.error}（${e.n}）`).join("；") || "没有记录错误",
+          .join(", ") + ". 엄선과 핫이슈에 콘텐츠가 비게 됩니다",
+        heals: p!.waiting >= 10 ? "서비스가 복구되면 자동으로 밀린 처리를 보충합니다" : "아니요. 복구한 뒤 이 기사들을 다시 처리해야 합니다",
+        action: "AI 에게 넘겨 처리하세요",
+        detail: errors.map((e) => `${e.error}(${e.n})`).join(", ") || "기록된 오류가 없습니다",
         since: p!.waiting >= 10 && p!.oldest ? p!.oldest : undefined,
       });
     }
@@ -105,11 +105,11 @@ export async function collectFindings(now = Date.now()): Promise<Finding[]> {
         out.push({
           key: "report.daily",
           level: "now",
-          title: "今天的日报还没生成",
-          impact: "读者看不到今天的日报",
-          heals: "系统每半小时补做一次，到现在还没成功",
-          action: "尽快发起一次维护处理",
-          detail: `reports daily ${beijingDate(now)} 不存在；看 reports.compose 的运行记录`,
+          title: "오늘의 데일리 브리핑이 아직 생성되지 않았습니다",
+          impact: "독자가 오늘의 데일리 브리핑을 볼 수 없습니다",
+          heals: "시스템이 30분마다 재시도하지만 아직 성공하지 못했습니다",
+          action: "가능한 한 빨리 유지보수 처리를 한 번 실행하세요",
+          detail: `reports daily ${beijingDate(now)} 가 없습니다. reports.compose 의 실행 기록을 확인하세요`,
         });
       }
     }
@@ -126,10 +126,10 @@ export async function collectFindings(now = Date.now()): Promise<Finding[]> {
     out.push({
       key: "deliveries.failed",
       level: "today",
-      title: "飞书内容群有推送没发出去",
-      impact: `过去 24 小时 ${refused!.n} 条通知没进${refused!.target ?? "内容群"}`,
-      heals: "不会自动重发",
-      action: "转给 AI 处理；如果推送机器人被移出了群，需要你把它加回去",
+      title: "Feishu 콘텐츠 그룹에 발송되지 못한 푸시가 있습니다",
+      impact: `지난 24시간 동안 알림 ${refused!.n}건이 ${refused!.target ?? "콘텐츠 그룹"}에 들어가지 못했습니다`,
+      heals: "자동으로 재발송되지 않습니다",
+      action: "AI 에게 넘겨 처리하세요. 푸시 봇이 그룹에서 제외됐다면 다시 추가해야 합니다",
       detail: refused!.response ?? "",
     });
   }
@@ -144,20 +144,20 @@ export async function collectFindings(now = Date.now()): Promise<Finding[]> {
     const lastOk = Math.max(runs?.last_ok?.getTime() ?? 0, b?.value.uploaded ? Date.parse(b.value.at) : 0);
     const since = lastOk || runs?.first_attempt?.getTime() || now;
     const age = now - since;
-    const state = b?.value.filesError ? `数据库已上传，附件打包失败：${b.value.filesError}` : b?.value.uploaded === false ? "未上传" : "";
+    const state = b?.value.filesError ? `데이터베이스는 업로드됐으나 첨부 패키징 실패: ${b.value.filesError}` : b?.value.uploaded === false ? "미업로드" : "";
     if (age > 50 * 3600_000) {
       out.push({
         key: "backup.failed",
         level: "today",
-        title: "数据库备份连续两天没成功",
-        impact: lastOk ? `万一服务器出事，最近 ${duration(age)} 的数据可能无法完整恢复` : "还没有成功的完整备份，服务器出事时可能无法恢复数据",
-        heals: "不会",
-        action: "转给 AI 处理",
-        detail: `${lastOk ? "最近一次成功" : "首次备份尝试"} ${beijingStamp(since)}${state ? `；${state}` : ""}；看 ops.backup 的运行记录`,
+        title: "데이터베이스 백업이 이틀 연속 성공하지 못했습니다",
+        impact: lastOk ? `서버에 문제가 생기면 최근 ${duration(age)} 치 데이터가 완전히 복구되지 않을 수 있습니다` : "아직 성공한 전체 백업이 없어, 서버 장애 시 데이터를 복구하지 못할 수 있습니다",
+        heals: "아니요",
+        action: "AI 에게 넘겨 처리하세요",
+        detail: `${lastOk ? "최근 성공" : "최초 백업 시도"} ${beijingStamp(since)}${state ? `. ${state}` : ""}. ops.backup 의 실행 기록을 확인하세요`,
         since: new Date(since),
       });
     } else if (!b || !b.value.uploaded || age > 30 * 3600_000) {
-      out.push({ key: "backup.stale", level: "later", title: "数据库备份超过一天没成功", detail: b ? `最近一次 ${beijingStamp(b.value.at)}${state ? `（${state}）` : ""}；看 ops.backup` : "还没有成功的备份记录" });
+      out.push({ key: "backup.stale", level: "later", title: "데이터베이스 백업이 하루 넘게 성공하지 못했습니다", detail: b ? `최근 ${beijingStamp(b.value.at)}${state ? `(${state})` : ""}. ops.backup 확인` : "아직 성공한 백업 기록이 없습니다" });
     }
   }
 
@@ -170,35 +170,35 @@ export async function collectFindings(now = Date.now()): Promise<Finding[]> {
   if (collecting()) {
     for (const group of await sourceHealth(now)) {
       if (group.failing.length) out.push({
-        key: `sources.failing.${group.mode}`, level: "later", title: `${group.name}有 ${group.failing.length} 个信源连续抓取失败`,
-        detail: sourceHealthList(group.failing, s => `连续失败 ${s.fail_count} 次${s.last_error ? `，${s.last_error}` : ""}`) + "；转给 AI 检查抓取错误",
+        key: `sources.failing.${group.mode}`, level: "later", title: `${group.name} 소식원 ${group.failing.length}곳이 연속으로 수집에 실패했습니다`,
+        detail: sourceHealthList(group.failing, s => `연속 실패 ${s.fail_count}회${s.last_error ? `, ${s.last_error}` : ""}`) + ". AI 에게 넘겨 수집 오류를 점검하세요",
       });
       if (group.unstable.length) out.push({
-        key: `sources.unstable.${group.mode}`, level: "later", title: `${group.name}有 ${group.unstable.length} 个信源反复抓取失败`,
-        detail: sourceHealthList(group.unstable, s => `近 7 天失败 ${s.failed}/${s.runs} 次`) + "；即使最近成功也需检查，避免继续漏收",
+        key: `sources.unstable.${group.mode}`, level: "later", title: `${group.name} 소식원 ${group.unstable.length}곳이 반복적으로 수집에 실패했습니다`,
+        detail: sourceHealthList(group.unstable, s => `최근 7일 ${s.failed}/${s.runs}회 실패`) + ". 최근 성공했더라도 누락이 이어지지 않도록 점검이 필요합니다",
       });
       if (group.silent.length) out.push({
-        key: `sources.silent.${group.mode}`, level: "later", title: `${group.name}有 ${group.silent.length} 个信源 7 天未发现新内容`,
-        detail: sourceHealthList(group.silent, s => `近 7 天 ${s.runs} 次抓取、0 条新发现`) + "；需对照原站，区分低频更新与采集失效",
+        key: `sources.silent.${group.mode}`, level: "later", title: `${group.name} 소식원 ${group.silent.length}곳이 7일간 새 콘텐츠를 발견하지 못했습니다`,
+        detail: sourceHealthList(group.silent, s => `최근 7일 ${s.runs}회 수집, 새 발견 0건`) + ". 원본 사이트와 대조해 저빈도 갱신인지 수집 실패인지 구분해야 합니다",
       });
       if (group.quality.length) out.push({
-        key: `sources.quality.${group.mode}`, level: "later", title: `${group.name}有 ${group.quality.length} 个信源需要核实文章质量`,
-        detail: sourceHealthList(group.quality, s => `近 7 天缺发布时间 ${s.undated} 篇、反复修订 ${s.repeated} 篇`) + "；缺时间可能让新闻按历史文章处理，反复修订需核对正文是否混入变化内容",
+        key: `sources.quality.${group.mode}`, level: "later", title: `${group.name} 소식원 ${group.quality.length}곳의 기사 품질 확인이 필요합니다`,
+        detail: sourceHealthList(group.quality, s => `최근 7일 발행 시각 누락 ${s.undated}건, 반복 수정 ${s.repeated}건`) + ". 시각이 없으면 뉴스를 과거 기사로 처리할 수 있고, 반복 수정은 본문에 변경 내용이 섞였는지 대조가 필요합니다",
       });
       if (group.detailFailures.length) out.push({
-        key: `sources.details.${group.mode}`, level: "later", title: `${group.name}有 ${group.detailFailures.length} 个信源详情补全失败`,
-        detail: sourceHealthList(group.detailFailures, s => `近 7 天 ${s.detail_failures} 次`) + "；查看抓取记录中的详情地址与错误",
+        key: `sources.details.${group.mode}`, level: "later", title: `${group.name} 소식원 ${group.detailFailures.length}곳의 상세 보완에 실패했습니다`,
+        detail: sourceHealthList(group.detailFailures, s => `최근 7일 ${s.detail_failures}회`) + ". 수집 기록의 상세 주소와 오류를 확인하세요",
       });
     }
   }
   const [r] = await sql<{ receipts: number; services: string | null; deliveries: number }[]>`
     SELECT (SELECT count(*)::int FROM receipts WHERE status = 'unknown') AS receipts,
-           (SELECT string_agg(DISTINCT service || '/' || purpose, '、') FROM receipts WHERE status = 'unknown') AS services,
+           (SELECT string_agg(DISTINCT service || '/' || purpose, ', ') FROM receipts WHERE status = 'unknown') AS services,
            (SELECT count(*)::int FROM deliveries WHERE status = 'unknown') AS deliveries`;
   if (r!.receipts > 0) {
-    out.push({ key: "receipts.unknown", level: "later", title: `${r!.receipts} 个付费请求的结果尚未确认`, detail: `${r!.services}；可能影响内容处理，后台“运行”页查看影响；自动恢复后仍未知的请求需核对后放行` });
+    out.push({ key: "receipts.unknown", level: "later", title: `유료 요청 ${r!.receipts}건의 결과가 아직 확인되지 않았습니다`, detail: `${r!.services}. 콘텐츠 처리에 영향을 줄 수 있습니다. 관리자 '실행' 페이지에서 영향을 확인하고, 자동 복구 후에도 불확실한 요청은 대조 후 통과시키세요` });
   }
-  if (r!.deliveries > 0) out.push({ key: "deliveries.unknown", level: "later", title: `${r!.deliveries} 条飞书内容群推送不确定是否送达`, detail: "后台“运行”页核对群里有没有，再标记或重发" });
+  if (r!.deliveries > 0) out.push({ key: "deliveries.unknown", level: "later", title: `Feishu 콘텐츠 그룹 푸시 ${r!.deliveries}건의 전달 여부가 불확실합니다`, detail: "관리자 '실행' 페이지에서 그룹에 도착했는지 대조한 뒤 표시하거나 재발송하세요" });
 
   // Runnable jobs (deferred ones excluded) that have waited more than two hours.
   const queues = await sql<{ name: string; n: number; oldest: Date }[]>`
@@ -206,7 +206,7 @@ export async function collectFindings(now = Date.now()): Promise<Finding[]> {
     WHERE state IN ('created', 'retry') AND start_after <= now() AND name NOT LIKE 'cron.%' GROUP BY 1`;
   for (const q of queues) {
     if (now - q.oldest.getTime() > 2 * 3600_000) {
-      out.push({ key: `queue.${q.name}`, level: "later", title: `后台任务排队超过 2 小时：${q.name}`, detail: `${q.n} 个等待，最早的等了 ${duration(now - q.oldest.getTime())}` });
+      out.push({ key: `queue.${q.name}`, level: "later", title: `백그라운드 작업이 2시간 넘게 대기 중입니다: ${q.name}`, detail: `${q.n}개 대기, 가장 오래된 것은 ${duration(now - q.oldest.getTime())} 대기` });
     }
   }
 
@@ -218,25 +218,25 @@ export async function collectFindings(now = Date.now()): Promise<Finding[]> {
 /** What stops when a model service refuses us: the steps that default to its models, else a pointer to the admin. */
 function modelStops(service: string): string {
   const steps = stepsOnService(service);
-  return steps.length ? `${steps.join("、")}停了` : "用到这家模型的步骤停了（看后台“模型与评测”），新内容可能进不了精选";
+  return steps.length ? `${steps.join(", ")} 단계가 멈췄습니다` : "이 모델을 쓰는 단계가 멈췄습니다(관리자 '모델과 평가' 확인). 새 콘텐츠가 엄선에 들지 못할 수 있습니다";
 }
 /** `stops` is for the services that are not models; a model service's follows from the steps that use it. */
 const PROVIDERS: Record<string, { name: string; where: string; stops?: string }> = {
-  llm: { name: "默认模型服务", where: "模型服务商的控制台" },
-  zhipu: { name: "智谱", where: "智谱开放平台" },
-  dashscope: { name: "阿里云百炼", where: "阿里云百炼控制台" },
-  deepseek: { name: "DeepSeek", where: "DeepSeek 开放平台" },
-  mimo: { name: "小米 MiMo", where: "小米 MiMo 开放平台" },
-  socialdata: { name: "SocialData", stops: "X（推特）上的新内容收不到", where: "SocialData 后台" },
-  jina: { name: "Jina", stops: "部分文章取不到正文", where: "Jina 后台" },
-  dajiala: { name: "极致了（Dajiala）", stops: "公众号新文章收不到", where: "极致了后台" },
+  llm: { name: "기본 모델 서비스", where: "모델 서비스 제공사 콘솔" },
+  zhipu: { name: "Zhipu", where: "Zhipu 오픈 플랫폼" },
+  dashscope: { name: "Alibaba Cloud Bailian", where: "Alibaba Cloud Bailian 콘솔" },
+  deepseek: { name: "DeepSeek", where: "DeepSeek 오픈 플랫폼" },
+  mimo: { name: "Xiaomi MiMo", where: "Xiaomi MiMo 오픈 플랫폼" },
+  socialdata: { name: "SocialData", stops: "X(트위터)의 새 콘텐츠를 받지 못합니다", where: "SocialData 관리자" },
+  jina: { name: "Jina", stops: "일부 기사의 본문을 가져오지 못합니다", where: "Jina 관리자" },
+  dajiala: { name: "Dajiala", stops: "위챗 공식계정의 새 기사를 받지 못합니다", where: "Dajiala 관리자" },
 };
 export const providerName = (service: string) => PROVIDERS[service]?.name ?? service;
 export const providerStops = (service: string) => {
   const p = PROVIDERS[service];
-  return p ? (p.stops ?? modelStops(service)) : "相关功能停了";
+  return p ? (p.stops ?? modelStops(service)) : "관련 기능이 멈췄습니다";
 };
-export const providerConsole = (service: string) => PROVIDERS[service]?.where ?? `${service} 后台`;
+export const providerConsole = (service: string) => PROVIDERS[service]?.where ?? `${service} 관리자`;
 
 /** Paid services that refuse us (no balance, a dead key), and daily budgets used up. */
 async function providerFindings(): Promise<Finding[]> {
@@ -251,11 +251,11 @@ async function providerFindings(): Promise<Finding[]> {
       key: `provider.refused.${p.service}`,
       level: "today",
       owner: true,
-      title: `${providerName(p.service)} 拒绝服务，可能欠费或账号失效`,
+      title: `${providerName(p.service)} 가 서비스를 거부합니다. 요금 미납이나 계정 비활성화일 수 있습니다`,
       impact: providerStops(p.service),
-      heals: "不会",
-      action: `去${providerConsole(p.service)}看余额和账号状态，充值或恢复后系统会自动继续；两样都正常的话，发起一次维护查原因`,
-      detail: `最近 1 小时被拒 ${p.n} 次：${p.last}`,
+      heals: "아니요",
+      action: `${providerConsole(p.service)}에서 잔액과 계정 상태를 확인하세요. 충전하거나 복구하면 시스템이 자동으로 재개합니다. 둘 다 정상이면 유지보수를 실행해 원인을 확인하세요`,
+      detail: `최근 1시간 동안 ${p.n}회 거부됨: ${p.last}`,
     });
   }
   const capped = await sql<{ service: string; per_day: number; used: number }[]>`
@@ -266,11 +266,11 @@ async function providerFindings(): Promise<Finding[]> {
     out.push({
       key: `budget.day.${c.service}`,
       level: "later",
-      title: `${providerName(c.service)} 过去 24 小时的调用额度用完了`,
-      impact: `${providerStops(c.service)}，直到额度随时间腾出来`,
-      heals: "会，额度按 24 小时滚动恢复",
-      action: "这次不用处理；如果经常出现，再决定要不要调高额度",
-      detail: `24 小时内 ${c.used} 次，上限 ${c.per_day}（budgets 表）`,
+      title: `${providerName(c.service)} 의 지난 24시간 호출 한도를 소진했습니다`,
+      impact: `${providerStops(c.service)}. 한도가 시간에 따라 다시 생길 때까지 지속됩니다`,
+      heals: "네, 한도는 24시간 롤링으로 복구됩니다",
+      action: "이번에는 처리할 필요가 없습니다. 자주 발생하면 한도 상향을 검토하세요",
+      detail: `24시간 내 ${c.used}회, 상한 ${c.per_day}(budgets 테이블)`,
     });
   }
   return out;
@@ -318,6 +318,6 @@ export async function sendDigest(now = Date.now()) {
   const items = (await collectFindings(now)).filter((f) => f.level === "later");
   const lines = items.map((f, i) => `${i + 1}. ${f.title}${f.detail ? `\n   ${f.detail}` : ""}`);
   if (!lines.length) return { items: 0 };
-  await sendAlert(`📋 系统日报 · ${beijingDay(now)}`, ["以下事项需要跟进，具体影响见各条说明；可把整条转给 AI 处理。", ...lines]);
+  await sendAlert(`📋 시스템 데일리 브리핑 · ${beijingDay(now)}`, ["아래 사항은 후속 조치가 필요합니다. 구체적 영향은 각 항목 설명을 참고하세요. 항목 전체를 AI 에게 넘겨 처리할 수 있습니다.", ...lines]);
   return { items: lines.length };
 }

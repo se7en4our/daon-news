@@ -48,7 +48,7 @@ export function parseLooseDate(value: string | null | undefined, utcOffset = "+0
     if (Number.isFinite(direct)) return new Date(direct);
     if (!numeric) return null;
   }
-  // 2026-09-26 / 2026/09/26 / 2026-09-26T10:00 / 2026年9月26日 (+ optional time), interpreted in the given offset.
+  // 2026-09-26 / 2026/09/26 / 2026-09-26T10:00 / CJK y-m-d such as 2026年9月26日 (+ optional time), interpreted in the given offset.
   const m = numeric;
   if (m) {
     const [, y, mo, d, h = "00", mi = "00", s = "00"] = m;

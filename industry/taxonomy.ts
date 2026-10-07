@@ -1,75 +1,75 @@
-// 这个行业的分类体系：类别、标签词表、公司（主体）名录，以及防止张冠李戴的身份词典。
-// 模型按这里的词表打标签，主题页（topics.json）按标签归类，筛选栏按类别分组。
-// 换行业时：类别的 key 会出现在网址里（/all?category=…），上线后就不要再改；标签和名录可以随时增减。
+// 이 분야의 분류 체계: 카테고리, 태그 어휘, 회사(주체) 명부, 그리고 주체를 헷갈리지 않게 하는 신원 사전.
+// 모델은 여기 어휘에 따라 태그를 달고, 주제 페이지(topics.json)는 태그로 분류하며, 필터 바는 카테고리로 묶는다.
+// 분야를 바꿀 때: 카테고리의 key 는 URL(/all?category=…)에 들어가므로 출시 후에는 바꾸지 말 것. 태그와 명부는 언제든 늘리거나 줄여도 된다.
 
 /**
- * 网页上的类别（筛选栏、卡片角标、RSS 分类订阅）。key 是网址和接口里的身份，上线后不要改。
- * section 是日报里的分节标题（几个类别可以共用一节，按这里的顺序排）；guide 告诉结构抽取模型这一类收什么、
- * 和相邻类别的边界在哪（总的归类原则写在 prompts/structure.md 里）。
- * commentary 标出评论类（教程、观点）：日报写过的事又有评论类的后续报道，只占一行快讯（报道它的信源够多时除外）。
- * 没归上类的资料在日报里放进第一个 key 为 industry 的类别所在的节（没有就放最后一节）。
- * feedLabel 是分类 RSS 标题里的名字（不写就用 label）。公开接口、RSS 和 MCP 里要把一类并进另一类发布，写在站点设置里（site/site.ts 的 PUBLIC_CATEGORIES）。
+ * 웹에 노출되는 카테고리(필터 바, 카드 배지, RSS 카테고리 구독). key 는 URL 과 API 상의 신원이니 출시 후 바꾸지 말 것.
+ * section 은 데일리 브리핑의 섹션 제목(여러 카테고리가 한 섹션을 공유할 수 있고, 여기 순서대로 배치된다); guide 는 구조 추출 모델에게 이 카테고리가 무엇을 담고
+ * 인접 카테고리와의 경계가 어디인지 알려준다(전체 분류 원칙은 prompts/structure.md 에 적혀 있다).
+ * commentary 는 평론류(튜토리얼, 관점)를 표시한다: 데일리 브리핑에서 이미 다룬 이슈에 평론류 후속 보도가 붙으면 한 줄 속보로만 들어간다(그 이슈를 보도한 소식원이 충분히 많을 때는 예외).
+ * 분류되지 않은 자료는 데일리 브리핑에서 key 가 industry 인 첫 카테고리가 속한 섹션에 넣는다(없으면 마지막 섹션).
+ * feedLabel 은 카테고리별 RSS 제목에 쓰는 이름(없으면 label 사용). 공개 API, RSS, MCP 에서 한 카테고리를 다른 카테고리에 합쳐 발행하려면 사이트 설정(site/site.ts 의 PUBLIC_CATEGORIES)에 적는다.
  */
 export const CATEGORIES = [
-  { key: "ai-models", label: "模型", feedLabel: "AI 模型", section: "模型发布/更新", guide: "模型本身的发布、版本、权重开放、能力或价格变化，以及既有榜单上的模型成绩。公布一次跑分不是发布新基准，也不是教程。" },
-  { key: "ai-products", label: "产品", feedLabel: "AI 产品", section: "产品发布/更新", guide: "可使用的 AI 产品、功能、应用、工具、API、平台和工程组件的发布更新。模型厂商发布的推理框架、算子库、硬件适配组件仍是产品，不能因为厂商名归成模型。" },
-  { key: "industry", label: "行业", feedLabel: "行业动态", section: "行业动态", guide: "已发生的公司经营、融资并购、人事、合作、诉讼、政策、真实安全事故及调查进展。新闻由当事人发帖、带有态度，也不因此变成观点。" },
-  { key: "paper", label: "论文", feedLabel: "论文", section: "论文研究", guide: "以新研究方法、实验设计与发现为核心的论文、技术报告、新基准或研究数据集。系统性红队实验属于研究；既有榜单成绩归模型，真实事故的新闻调查归行业。" },
-  { key: "tip", label: "教程", section: "技巧与观点", guide: "读者可以照着使用的方法、提示词、工具用法、工程实践复盘与技术讲解。重点是可复用的做法；单纯发布工具归产品，只有态度和预测而无做法归观点。", commentary: true },
-  { key: "opinion", label: "观点", section: "技巧与观点", guide: "重点是作者的解释、判断、主张、预测、评论或访谈观点。讨论市场不自动归行业，作者是名人不自动归观点。", commentary: true },
+  { key: "ai-models", label: "모델", feedLabel: "AI 모델", section: "모델 공개/업데이트", guide: "모델 자체의 공개, 버전, 가중치 개방, 성능이나 가격 변화, 그리고 기존 리더보드에서의 모델 성적. 한 번 벤치마크 점수를 공개한 것은 새 벤치마크 발표도, 튜토리얼도 아니다." },
+  { key: "ai-products", label: "제품", feedLabel: "AI 제품", section: "제품 출시/업데이트", guide: "사용할 수 있는 AI 제품, 기능, 애플리케이션, 도구, API, 플랫폼, 엔지니어링 구성요소의 출시·업데이트. 모델 업체가 내놓은 추론 프레임워크, 연산 라이브러리, 하드웨어 호환 구성요소도 여전히 제품이며, 업체 이름 때문에 모델로 분류하지 않는다." },
+  { key: "industry", label: "업계", feedLabel: "업계 소식", section: "업계 소식", guide: "이미 벌어진 회사 경영, 투자·인수합병, 인사, 제휴, 소송, 정책, 실제 보안 사고 및 조사 진행. 당사자가 직접 올렸거나 입장이 담긴 소식이라도 그 때문에 관점으로 바뀌지는 않는다." },
+  { key: "paper", label: "논문", feedLabel: "논문", section: "논문 연구", guide: "새로운 연구 방법, 실험 설계, 발견을 핵심으로 하는 논문, 기술 보고서, 새 벤치마크나 연구용 데이터셋. 체계적인 레드팀 실험은 연구에 속하고, 기존 리더보드 성적은 모델로, 실제 사고의 뉴스 조사는 업계로 분류한다." },
+  { key: "tip", label: "튜토리얼", section: "노하우와 관점", guide: "독자가 그대로 따라 쓸 수 있는 방법, 프롬프트, 도구 사용법, 엔지니어링 실전 회고, 기술 해설. 핵심은 재사용 가능한 방식이다. 도구를 단순 출시한 것은 제품으로, 입장과 예측만 있고 방법이 없는 것은 관점으로 분류한다.", commentary: true },
+  { key: "opinion", label: "관점", section: "노하우와 관점", guide: "핵심이 저자의 해석, 판단, 주장, 예측, 논평, 인터뷰 관점인 경우. 시장을 논한다고 자동으로 업계가 되지 않고, 저자가 유명인이라고 자동으로 관점이 되지 않는다.", commentary: true },
 ] as const satisfies ReadonlyArray<{ key: string; label: string; feedLabel?: string; section: string; guide: string; commentary?: true }>;
 
 /**
- * 这个行业最受关注的一类发布（AI 行业是新模型）：日报报头的“N 个新模型”、改分类后修订已出的报告都按它数。
- * category 是类别，tag 是标签，两者都对上才算；unit 接在数字后面。
- * 没有这样一类的行业设成 null，报头就不显示这个数。
+ * 이 분야에서 가장 주목받는 한 종류의 공개(AI 분야에서는 새 모델): 데일리 브리핑 헤더의 "새 모델 N개", 분류를 바꿔 이미 나온 리포트를 수정할 때 모두 이 기준으로 센다.
+ * category 는 카테고리, tag 는 태그이며 둘 다 맞아야 집계된다. unit 은 숫자 뒤에 붙는다.
+ * 이런 종류가 없는 분야는 null 로 두면 헤더에 이 숫자를 표시하지 않는다.
  */
-export const RELEASE: { category: string; tag: string; unit: string } | null = { category: "ai-models", tag: "模型发布", unit: "个新模型" };
+export const RELEASE: { category: string; tag: string; unit: string } | null = { category: "ai-models", tag: "모델 공개", unit: "개의 새 모델" };
 
-/** 周报月报的总述可以直接写、不必在报道里找到出处的行业通用词（小写）。站名会自动算进去。 */
+/** 주간 리포트·월간 리포트의 총평에서 보도에 출처가 없어도 바로 쓸 수 있는, 이 분야의 일반 용어(소문자). 사이트 이름은 자동으로 포함된다. */
 export const PLAIN_TERMS: readonly string[] = ["ai", "api", "llm", "gpu", "agi", "ceo", "ipo"];
 
 /**
- * 内容理解一步给每篇资料判的“内容类型”（写在 prompts/content-understanding.md 里，改了类型要同步改那份提示词）。
- * 评分提示词（prompts/selection-score.md）按类型给五个维度不同的权重。
+ * 콘텐츠 이해 단계에서 각 자료에 판정하는 "콘텐츠 유형"(prompts/content-understanding.md 에 적혀 있으며, 유형을 바꾸면 그 프롬프트도 함께 고쳐야 한다).
+ * 평가 프롬프트(prompts/selection-score.md)는 유형별로 다섯 축에 서로 다른 가중치를 준다.
  */
 export const ITEM_TYPES = ["model_release", "product_launch", "tool_or_prompt", "research_paper", "industry_event", "opinion_analysis", "tutorial_explainer"] as const;
 
-// ── 标签词表 ────────────────────────────────────────────────────────────────────────────
+// ── 태그 어휘 ────────────────────────────────────────────────────────────────────────────
 
-/** 每篇资料的第一个标签必须是这些“分类标签”之一。 */
+/** 각 자료의 첫 번째 태그는 반드시 이 "분류 태그" 중 하나여야 한다. */
 export const CATEGORY_TAGS = [
-  "产品更新", "模型发布", "论文/研究", "开源/仓库", "教程/实践", "现象/趋势", "大佬观点", "评测/基准", "安全/对齐", "行业动态", "政策/监管",
-  "非AI/通用工具", "其他",
+  "제품 업데이트", "모델 공개", "논문/연구", "오픈소스/저장소", "튜토리얼/실전", "현상/트렌드", "전문가 관점", "평가/벤치마크", "안전/정렬", "업계 소식", "정책/규제",
+  "비AI/범용 도구", "기타",
 ] as const;
 
-/** 可选的主题标签。 */
+/** 선택 가능한 주제 태그. */
 export const TOPIC_TAGS = [
-  "Agent", "编码", "推理", "多模态", "语音", "视频", "图像生成", "RAG", "端侧", "数据/训练", "搜索", "部署/工程", "开源生态", "具身智能", "MCP/工具调用",
+  "Agent", "코딩", "추론", "멀티모달", "음성", "비디오", "이미지 생성", "RAG", "온디바이스", "데이터/학습", "검색", "배포/엔지니어링", "오픈소스 생태계", "체화 지능", "MCP/도구 호출",
 ] as const;
 
-/** 可选的实体标签（公司、机构、平台）。 */
+/** 선택 가능한 엔티티 태그(회사, 기관, 플랫폼). */
 export const ENTITY_TAGS = ["OpenAI", "Anthropic", "DeepSeek", "DeepMind", "Google", "Meta", "Microsoft", "xAI", "Hugging Face", "GitHub", "arXiv"] as const;
 
-/** 模型常写的近义词，统一成词表里的写法。 */
+/** 모델이 자주 쓰는 유의어를 어휘표의 표기로 통일한다. */
 export const TAG_SYNONYMS: Readonly<Record<string, string>> = {
-  "教程/玩法": "教程/实践", "技巧/最佳实践": "教程/实践", "合作/生态": "行业动态", "融资/收购": "行业动态", "公司动态": "行业动态",
-  合作: "行业动态", 生态: "行业动态", 融资: "行业动态", 收购: "行业动态", 投资: "行业动态", 并购: "行业动态",
-  政策: "政策/监管", 监管: "政策/监管", 法规: "政策/监管", 安全: "安全/对齐", 对齐: "安全/对齐",
-  论文: "论文/研究", 研究: "论文/研究", paper: "论文/研究", papers: "论文/研究",
-  "open-source": "开源/仓库", 开源: "开源/仓库", 仓库: "开源/仓库", repo: "开源/仓库",
-  教程: "教程/实践", 玩法: "教程/实践", 指南: "教程/实践", 技巧: "教程/实践", 最佳实践: "教程/实践", 实践: "教程/实践",
-  产品: "产品更新", 更新: "产品更新", 发布: "模型发布", 模型: "模型发布", 趋势: "现象/趋势", 现象: "现象/趋势", 观点: "大佬观点",
-  视频生成: "视频", 非ai: "非AI/通用工具", "non-ai": "非AI/通用工具", 通用工具: "非AI/通用工具", 工程工具: "非AI/通用工具",
-  安全扫描: "非AI/通用工具", devops: "非AI/通用工具", 行业: "行业动态", 动态: "行业动态",
+  "튜토리얼/활용법": "튜토리얼/실전", "노하우/모범사례": "튜토리얼/실전", "제휴/생태계": "업계 소식", "투자/인수": "업계 소식", "회사 소식": "업계 소식",
+  제휴: "업계 소식", 생태계: "업계 소식", 투자유치: "업계 소식", 인수: "업계 소식", 투자: "업계 소식", 인수합병: "업계 소식",
+  정책: "정책/규제", 규제: "정책/규제", 법규: "정책/규제", 안전: "안전/정렬", 정렬: "안전/정렬",
+  논문: "논문/연구", 연구: "논문/연구", paper: "논문/연구", papers: "논문/연구",
+  "open-source": "오픈소스/저장소", 오픈소스: "오픈소스/저장소", 저장소: "오픈소스/저장소", repo: "오픈소스/저장소",
+  튜토리얼: "튜토리얼/실전", 활용법: "튜토리얼/실전", 가이드: "튜토리얼/실전", 노하우: "튜토리얼/실전", 모범사례: "튜토리얼/실전", 실전: "튜토리얼/실전",
+  제품: "제품 업데이트", 업데이트: "제품 업데이트", 공개: "모델 공개", 모델: "모델 공개", 트렌드: "현상/트렌드", 현상: "현상/트렌드", 관점: "전문가 관점",
+  영상생성: "비디오", 비ai: "비AI/범용 도구", "non-ai": "비AI/범용 도구", 범용도구: "비AI/범용 도구", 엔지니어링도구: "비AI/범용 도구",
+  보안스캔: "비AI/범용 도구", devops: "비AI/범용 도구", 업계: "업계 소식", 소식: "업계 소식",
 };
 
-// ── 公司与主体 ──────────────────────────────────────────────────────────────────────────
+// ── 회사와 주체 ──────────────────────────────────────────────────────────────────────────
 
 /**
- * 公司主题：id → 显示名、卡片上显示的标签（null 表示只用 entity:<id> 归类）、别名。
- * aliases 给结构抽取模型看；otherNames 是公司自己的其他称呼（官方账号名、子品牌），
- * 把事实的主体对到发布方时也认它们。
+ * 회사 주제: id → 표시명, 카드에 표시할 태그(null 이면 entity:<id> 로만 분류), 별칭.
+ * aliases 는 구조 추출 모델에게 보여 주는 것이고, otherNames 는 회사가 스스로 쓰는 다른 명칭(공식 계정명, 하위 브랜드)으로,
+ * 사실의 주체를 발표 주체에 연결할 때 이들도 인정한다.
  */
 export const ENTITIES: Record<string, { name: string; displayTag: string | null; aliases: string[]; otherNames?: string[] }> = {
   "world-labs": { name: "World Labs", displayTag: null, aliases: ["World Labs"] },
@@ -77,24 +77,24 @@ export const ENTITIES: Record<string, { name: string; displayTag: string | null;
   amd: { name: "AMD", displayTag: null, aliases: ["AMD", "Advanced Micro Devices"] },
   openai: { name: "OpenAI", displayTag: "OpenAI", aliases: ["OpenAI", "ChatGPT", "Sora", "Codex", "GPT"], otherNames: ["OpenAI Developers"] },
   anthropic: { name: "Anthropic", displayTag: "Anthropic", aliases: ["Anthropic", "Claude"], otherNames: ["Claude Code"] },
-  google: { name: "Google", displayTag: "Google", aliases: ["Google", "DeepMind", "Gemini", "谷歌"], otherNames: ["Google DeepMind", "Google Research", "Google AI", "Google Labs", "Google Cloud"] },
-  deepseek: { name: "DeepSeek", displayTag: "DeepSeek", aliases: ["DeepSeek", "深度求索"] },
-  qwen: { name: "千问 Qwen", displayTag: null, aliases: ["Qwen", "通义", "阿里"], otherNames: ["通义千问", "千问", "千问APP", "Qwen Team", "通义实验室", "阿里巴巴", "Alibaba", "阿里云", "Alibaba Cloud"] },
-  kimi: { name: "Kimi / 月之暗面", displayTag: null, aliases: ["Kimi", "月之暗面", "Moonshot"], otherNames: ["Moonshot AI"] },
+  google: { name: "Google", displayTag: "Google", aliases: ["Google", "DeepMind", "Gemini", "구글"], otherNames: ["Google DeepMind", "Google Research", "Google AI", "Google Labs", "Google Cloud"] },
+  deepseek: { name: "DeepSeek", displayTag: "DeepSeek", aliases: ["DeepSeek", "深度求索", "딥시크"] },
+  qwen: { name: "Qwen", displayTag: null, aliases: ["Qwen", "通义", "阿里", "알리바바"], otherNames: ["通义千问", "千问", "Qwen Team", "通义实验室", "阿里巴巴", "Alibaba", "阿里云", "Alibaba Cloud"] },
+  kimi: { name: "Kimi / Moonshot", displayTag: null, aliases: ["Kimi", "月之暗面", "Moonshot"], otherNames: ["Moonshot AI"] },
   minimax: { name: "MiniMax", displayTag: null, aliases: ["MiniMax", "海螺"], otherNames: ["稀宇科技"] },
-  zhipu: { name: "智谱 GLM", displayTag: null, aliases: ["智谱", "GLM", "Z.ai"], otherNames: ["智谱AI", "Zhipu", "Zhipu AI"] },
+  zhipu: { name: "Zhipu GLM", displayTag: null, aliases: ["智谱", "GLM", "Z.ai"], otherNames: ["智谱AI", "Zhipu", "Zhipu AI"] },
   xai: { name: "xAI", displayTag: "xAI", aliases: ["xAI", "Grok"], otherNames: ["SpaceXAI"] },
   meta: { name: "Meta", displayTag: "Meta", aliases: ["Meta", "Llama"], otherNames: ["Meta AI", "AI at Meta"] },
-  microsoft: { name: "Microsoft", displayTag: "Microsoft", aliases: ["Microsoft", "微软", "Copilot"], otherNames: ["Microsoft Research", "Microsoft AI"] },
-  nvidia: { name: "NVIDIA", displayTag: null, aliases: ["NVIDIA", "英伟达"] },
+  microsoft: { name: "Microsoft", displayTag: "Microsoft", aliases: ["Microsoft", "微软", "마이크로소프트", "Copilot"], otherNames: ["Microsoft Research", "Microsoft AI"] },
+  nvidia: { name: "NVIDIA", displayTag: null, aliases: ["NVIDIA", "英伟达", "엔비디아"] },
   "hugging-face": { name: "Hugging Face", displayTag: "Hugging Face", aliases: ["Hugging Face"], otherNames: ["HuggingFace"] },
   cursor: { name: "Cursor", displayTag: null, aliases: ["Cursor", "Anysphere"] },
   openrouter: { name: "OpenRouter", displayTag: null, aliases: ["OpenRouter"] },
 };
 
 /**
- * 身份词典：摘要和标题里出现的公司，必须在原文里也出现过，否则退回原标题、丢掉摘要（防止模型张冠李戴）。
- * 行业没有这个问题时可以留空数组。
+ * 신원 사전: 요약과 제목에 등장하는 회사는 반드시 원문에도 나와야 하며, 그렇지 않으면 원래 제목으로 되돌리고 요약을 버린다(모델이 주체를 헷갈리는 것을 막기 위함).
+ * 이 문제가 없는 분야는 빈 배열로 둘 수 있다.
  */
 export const IDENTITY_LEXICON: ReadonlyArray<{ id: string; name: string; patterns: RegExp[] }> = [
   { id: "openai", name: "OpenAI", patterns: [/openai|chatgpt|\bgpt-?[o\d]|\bsora\b|\bcodex\b/i] },
@@ -105,15 +105,15 @@ export const IDENTITY_LEXICON: ReadonlyArray<{ id: string; name: string; pattern
   { id: "meta", name: "Meta / Llama", patterns: [/\bMeta\b/, /\bmeta\s?ai\b|\bllama\b/i] },
   { id: "microsoft", name: "Microsoft / Copilot", patterns: [/microsoft|copilot|微软/i] },
   { id: "nvidia", name: "NVIDIA", patterns: [/nvidia|英伟达|\bnemotron\b|\bnemo\b|\bblackwell\b|\brubin(?:\s+ultra)?\b|\bcuda\b/i] },
-  { id: "qwen", name: "千问 Qwen", patterns: [/\bqwen|通义|千问/i] },
+  { id: "qwen", name: "Qwen", patterns: [/\bqwen|通义|千问/i] },
   { id: "hugging-face", name: "Hugging Face", patterns: [/hugging\s?face/i] },
   { id: "cursor", name: "Cursor", patterns: [/\bCursor\b/] },
-  { id: "kimi", name: "Kimi / 月之暗面", patterns: [/\bkimi\b|月之暗面|\bmoonshot\s?ai\b/i] },
+  { id: "kimi", name: "Kimi / Moonshot", patterns: [/\bkimi\b|月之暗面|\bmoonshot\s?ai\b/i] },
   { id: "openrouter", name: "OpenRouter", patterns: [/openrouter/i] },
   { id: "minimax", name: "MiniMax", patterns: [/minimax/i] },
-  { id: "zhipu", name: "智谱 GLM", patterns: [/智谱|\bglm-?[4-9]/i] },
-  { id: "hunyuan", name: "腾讯混元", patterns: [/混元|hunyuan/i] },
-  { id: "doubao", name: "字节豆包", patterns: [/豆包|doubao|字节跳动|bytedance/i] },
+  { id: "zhipu", name: "Zhipu GLM", patterns: [/智谱|\bglm-?[4-9]/i] },
+  { id: "hunyuan", name: "Tencent Hunyuan", patterns: [/混元|hunyuan/i] },
+  { id: "doubao", name: "ByteDance Doubao", patterns: [/豆包|doubao|字节跳动|bytedance/i] },
   { id: "mistral", name: "Mistral", patterns: [/mistral/i] },
   { id: "perplexity", name: "Perplexity", patterns: [/\bPerplexity\b/] },
   { id: "runway", name: "Runway", patterns: [/\brunway\b/i] },
@@ -128,10 +128,10 @@ export const IDENTITY_LEXICON: ReadonlyArray<{ id: string; name: string; pattern
   { id: "manus", name: "Manus", patterns: [/\bmanus\b/i] },
   { id: "apple", name: "Apple AI", patterns: [/\bapple\s?(intelligence|silicon|ai)\b|苹果(智能|\s?AI)/i] },
   { id: "amazon", name: "Amazon / AWS", patterns: [/amazon|\baws\b|亚马逊/i] },
-  { id: "baidu", name: "百度文心", patterns: [/百度|baidu|文心|\bernie\s?bot\b/i] },
+  { id: "baidu", name: "Baidu ERNIE", patterns: [/百度|baidu|文心|\bernie\s?bot\b/i] },
 ];
 
-/** 这些域名上的文章，发布方就是对应的公司（托管平台如 GitHub、arXiv 不算）。 */
+/** 이 도메인에서 발행된 글은 발행 주체가 해당 회사다(GitHub, arXiv 같은 호스팅 플랫폼은 제외). */
 export const PUBLISHER_DOMAINS: ReadonlyArray<{ entityId: string; domains: readonly string[] }> = [
   { entityId: "openai", domains: ["openai.com"] },
   { entityId: "anthropic", domains: ["anthropic.com", "claude.com"] },
@@ -146,7 +146,7 @@ export const PUBLISHER_DOMAINS: ReadonlyArray<{ entityId: string; domains: reado
   { entityId: "openrouter", domains: ["openrouter.ai"] },
 ];
 
-/** 原文里的这些写法也算提到了对应公司。 */
+/** 원문의 이런 표기도 해당 회사를 언급한 것으로 본다. */
 export const IDENTITY_CONTEXT_ALIASES: ReadonlyArray<{ entityId: string; pattern: RegExp }> = [
   { entityId: "meta", pattern: /@AIatMeta\b/i },
   { entityId: "zhipu", pattern: /\bZhipu(?:\s+AI\b|['’]s\b)/i },

@@ -78,22 +78,22 @@ test('the request is idempotent and a reused request identity cannot approve a d
   const input={version:plan.version,hash:plan.hash,publishedAt:corrected,requestId:`date-${id}`,reason:'Verified original date'};
   const first=await correctPublicationDate(id,input,'test');
   assert.deepEqual(await correctPublicationDate(id,input,'test'),first);
-  await assert.rejects(correctPublicationDate(id,{...input,publishedAt:'2020-11-02T00:00:00.000Z'},'test'),/request|请求|日期/);
+  await assert.rejects(correctPublicationDate(id,{...input,publishedAt:'2020-11-02T00:00:00.000Z'},'test'),/승인|서로 다른|request/);
   assert.equal((await sql`SELECT 1 FROM audit_log WHERE subject=${`content:${id}`} AND action='content.correct-publication-date'`).length,1);
 });
 
 test('malformed, recent or future dates and stale material metadata are refused',async()=>{
   const id=await fixture();
   for(const value of ['2020-10-29','2020-02-30T00:00:00.000Z',new Date(Date.now()-86400000).toISOString(),new Date(Date.now()+86400000).toISOString()])
-    await assert.rejects(previewPublicationDateCorrection(id,value),/ISO|日期|历史|future|recent|historical/);
+    await assert.rejects(previewPublicationDateCorrection(id,value),/ISO|날짜|과거|future|recent|historical/);
   const plan=(await previewPublicationDateCorrection(id,corrected))!;
   const input={version:plan.version,hash:plan.hash,publishedAt:corrected,requestId:`stale-${id}`,reason:'Verified original date'};
-  await assert.rejects(correctPublicationDate(id,{...input,version:plan.version+1},'test'),/修改|版本|changed/);
+  await assert.rejects(correctPublicationDate(id,{...input,version:plan.version+1},'test'),/수정|버전|changed/);
   await sql`UPDATE articles SET updated_at=updated_at+interval '1 second' WHERE id=${id}`;
-  await assert.rejects(correctPublicationDate(id,input,'test'),/修改|版本|changed/);
+  await assert.rejects(correctPublicationDate(id,input,'test'),/수정|버전|changed/);
   const refreshed=(await previewPublicationDateCorrection(id,corrected))!;
   await sql`UPDATE articles SET url=url||'-changed' WHERE id=${id}`;
-  await assert.rejects(correctPublicationDate(id,{...input,hash:refreshed.hash},'test'),/修改|版本|changed/);
+  await assert.rejects(correctPublicationDate(id,{...input,hash:refreshed.hash},'test'),/수정|버전|changed/);
   assert.equal((await sql`SELECT 1 FROM audit_log WHERE subject=${`content:${id}`} AND action='content.correct-publication-date'`).length,0);
 });
 
@@ -107,6 +107,6 @@ test('a failed audit or a changed publication decision rolls back the entire cor
     assert.deepEqual(await snapshot(),before);assert.equal((await sql`SELECT 1 FROM settings WHERE key=${`date-hook:${id}`}`).length,0);
   }finally{await sql.unsafe('DROP TRIGGER refuse_date_audit ON audit_log');await sql.unsafe('DROP FUNCTION refuse_date_audit()');}
   await sql`UPDATE editorial_overrides SET fields='{"selected":false}'::jsonb WHERE article_id=${id}`;
-  await assert.rejects(correctPublicationDate(id,{version:plan.version,hash:plan.hash,publishedAt:corrected,requestId:`decision-${id}`,reason:'Verified byline'},'test'),/公开|选稿|decision/);
+  await assert.rejects(correctPublicationDate(id,{version:plan.version,hash:plan.hash,publishedAt:corrected,requestId:`decision-${id}`,reason:'Verified byline'},'test'),/공개|선정|decision/);
   assert.deepEqual(await snapshot(),before);
 });

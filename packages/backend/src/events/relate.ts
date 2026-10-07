@@ -44,7 +44,7 @@ export interface CandidateView {
   /** Recall similarity with the query (cosine of the two embeddings, or the lexical fallback's overlap). */
   score: number;
   report: ReportView;
-  /** Only a report already visible in 精选 counts as coverage the reader has seen. */
+  /** Only a report already visible in selection (엄선) counts as coverage the reader has seen. */
   selected?: boolean;
   selectedReport?: ReportView | null;
 }
@@ -87,21 +87,21 @@ export const SignalSchema = z.object({
 });
 
 function when(at: Date | null): string {
-  return at ? `${beijingDate(at)} ${beijingTime(at)}` : "未知";
+  return at ? `${beijingDate(at)} ${beijingTime(at)}` : "미상";
 }
 
 export function describeReport(r: ReportView, label: string, extra = "", summaryLimit = 360): string {
   const f = r.frame;
   return [
     `【${label}】${extra}`,
-    `标题：${r.title}`,
-    `来源：${r.source}${r.firstParty ? "（当事方/官方）" : ""}｜发布时间：${when(r.at)}`,
-    `摘要：${(r.summary ?? "").slice(0, summaryLimit) || "（无）"}`,
-    r.scope && r.scope !== "unknown" ? `资料范围：${r.scope === "composite" ? "多个独立发生的综合稿" : "单一具体发生或议题"}` : null,
+    `제목: ${r.title}`,
+    `출처: ${r.source}${r.firstParty ? "(당사자/공식)" : ""}｜발행 시간: ${when(r.at)}`,
+    `요약: ${(r.summary ?? "").slice(0, summaryLimit) || "(없음)"}`,
+    r.scope && r.scope !== "unknown" ? `자료 범위: ${r.scope === "composite" ? "여러 독립 발생의 종합 원고" : "단일 구체적 발생 또는 이슈"}` : null,
     f && (f.subject || f.action || f.object)
-      ? `事实要素：主体=${f.subject || "?"}；动作=${f.action || "?"}；对象=${f.object || "?"}；日期=${f.occurredAt || "未知"}`
+      ? `사실 요소: 주체=${f.subject || "?"}; 동작=${f.action || "?"}; 대상=${f.object || "?"}; 날짜=${f.occurredAt || "미상"}`
       : null,
-    r.sourceText ? `【原文证据】\n${r.sourceText.slice(0, 6000)}\n【原文证据结束】` : null,
+    r.sourceText ? `【원문 증거】\n${r.sourceText.slice(0, 6000)}\n【원문 증거 끝】` : null,
   ]
     .filter(Boolean)
     .join("\n");
@@ -109,24 +109,24 @@ export function describeReport(r: ReportView, label: string, extra = "", summary
 
 export const candidateKey = (index: number) => `C${index + 1}`;
 
-export function batchUser(query: ReportView, cands: CandidateView[], queryLabel = "新报道", reading: ReadingContext[] = []): string {
+export function batchUser(query: ReportView, cands: CandidateView[], queryLabel = "새 보도", reading: ReadingContext[] = []): string {
   const list = cands
     .map((c, i) => [
-      describeReport(c.report, `候选 ${candidateKey(i)}`, `（该事实已有 ${c.members} 篇报道；事实标题：${c.factTitle}）`),
-      queryLabel === "新报道" ? c.selected && c.selectedReport
-        ? describeReport(c.selectedReport, "已公开精选", "（增量只与这篇已展示的内容比较）")
-        : "【尚无公开精选】该候选只用于身份判断。" : null,
+      describeReport(c.report, `후보 ${candidateKey(i)}`, `(이 사실에는 이미 ${c.members}편의 보도가 있음; 사실 제목: ${c.factTitle})`),
+      queryLabel === "새 보도" ? c.selected && c.selectedReport
+        ? describeReport(c.selectedReport, "공개 엄선", "(증분은 이미 노출된 이 내용과만 비교)")
+        : "【아직 공개 엄선 없음】이 후보는 신원 판단에만 쓴다." : null,
     ].filter(Boolean).join("\n"))
     .join("\n\n");
   const background = reading.map(({ report, sourceText }, i) => [
-    describeReport(report, `已公开精选阅读背景 R${i + 1}`, "（只比较信息覆盖，不是事实候选）", 2000),
-    sourceText ? `【该已选报道的原文证据】\n${sourceText.slice(0, 6000)}\n【原文证据结束】` : null,
+    describeReport(report, `공개 엄선 읽기 배경 R${i + 1}`, "(정보 커버리지만 비교하며 사실 후보가 아님)", 2000),
+    sourceText ? `【이 엄선 보도의 원문 증거】\n${sourceText.slice(0, 6000)}\n【원문 증거 끝】` : null,
   ].filter(Boolean).join("\n")).join("\n\n");
-  return `${describeReport(query, queryLabel)}\n\n${list}${background ? `\n\n${background}` : ""}\n\n${queryLabel}与每个候选的关系是什么？${background ? "同时比较所有已公开精选内容，判断新增价值；无事实候选时 decisions=[]。" : ""}`;
+  return `${describeReport(query, queryLabel)}\n\n${list}${background ? `\n\n${background}` : ""}\n\n${queryLabel}와 각 후보의 관계는 무엇인가?${background ? " 동시에 모든 공개 엄선 내용과 비교해 새 가치를 판단하라. 사실 후보가 없으면 decisions=[]." : ""}`;
 }
 
 export function pairUser(a: ReportView, b: ReportView): string {
-  return `${describeReport(a, "报道 A")}\n\n${describeReport(b, "报道 B")}\n\n这两篇报道是什么关系？`;
+  return `${describeReport(a, "보도 A")}\n\n${describeReport(b, "보도 B")}\n\n이 두 보도는 어떤 관계인가?`;
 }
 
 /** An identity answer must address every supplied candidate exactly once. */
@@ -187,7 +187,7 @@ export const STORY_REVIEW_MIN_CONFIDENCE = 0.75;
 
 /** The text a report is embedded with: title and the start of the summary, the same on both sides of a comparison. */
 export function reportText(title: string, summary: string | null | undefined): string {
-  return `${title}。${(summary ?? "").slice(0, 300)}`;
+  return `${title}. ${(summary ?? "").slice(0, 300)}`;
 }
 
 /** Lexical stand-in for cosine when embeddings are off (no embedding key): shared character bigrams. */

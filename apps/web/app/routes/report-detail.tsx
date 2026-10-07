@@ -11,7 +11,7 @@ import { ReportPaper, reportOutline } from "../features/report/ReportPaper";
 import { KIND_LABEL, feedLink, kindFromPath } from "../features/report/format";
 import type { Screen } from "../components/shell/screens";
 
-export const handle: Screen = { tab: "daily", name: "日报" };
+export const handle: Screen = { tab: "daily", name: "일간 브리핑" };
 export { pageHeaders as headers } from "../lib/api.server";
 export const { clientLoader, shouldRevalidate } = pageReuse<typeof loader>();
 
@@ -33,12 +33,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 export function meta({ loaderData }: Route.MetaArgs) {
-  if (!loaderData) return [{ title: titled("报告不存在") }, { name: "robots", content: "noindex" }];
+  if (!loaderData) return [{ title: titled("리포트를 찾을 수 없습니다") }, { name: "robots", content: "noindex" }];
   const r = loaderData.report;
-  const description = r.lead?.leadParagraph ?? r.overview?.slice(0, 150) ?? `${SITE.name} ${r.key} ${subjectAfter("的", KIND_LABEL[r.kind])}。`;
+  const description = r.lead?.leadParagraph ?? r.overview?.slice(0, 150) ?? `${SITE.name} ${r.key} ${subjectAfter("의", KIND_LABEL[r.kind])}.`;
   const path = `/${r.kind}/${r.key}`;
   return [...pageMeta({
-    title: r.kind === "daily" ? `${withSubject("日报")} ${r.key}` : r.title.replace(`${SITE.name} ${KIND_LABEL[r.kind]}`, withSubject(KIND_LABEL[r.kind])),
+    title: r.kind === "daily" ? `${withSubject("데일리 브리핑")} ${r.key}` : r.title.replace(`${SITE.name} ${KIND_LABEL[r.kind]}`, withSubject(KIND_LABEL[r.kind])),
     description,
     path,
     image: `/og/reports/${r.kind}/${r.key}.png`,

@@ -8,7 +8,7 @@ import { bj } from "../../features/admin/format";
 import { KIND_LABEL, MODE_LABEL, TIER_LABEL } from "../../features/admin/labels";
 import { AdminPage, Button, Card, Empty, Field, Input, Select, Textarea } from "../../features/admin/ui";
 
-export const meta: Route.MetaFunction = () => [{ title: `新建信源 · ${SITE.name} 后台` }];
+export const meta: Route.MetaFunction = () => [{ title: `소식원 추가 · ${SITE.name} 관리자` }];
 
 const TEMPLATES: Record<string, Record<string, unknown>> = {
   rss: { feedUrl: "https://example.com/feed.xml" },
@@ -34,23 +34,23 @@ export default function NewSource() {
       setError(null);
       return JSON.parse(config) as Record<string, unknown>;
     } catch (e) {
-      setError(`配置不是合法 JSON：${(e as Error).message}`);
+      setError(`설정이 올바른 JSON이 아닙니다: ${(e as Error).message}`);
       return null;
     }
   };
 
   return (
-    <AdminPage title="新建信源" subtitle="先判重、先预览：优先 RSS/JSON 等稳定协议；首抓成功且有真实条目才算接入完成。一手身份要有运营主体或官方交叉链接证据。">
+    <AdminPage title="소식원 추가" subtitle="먼저 중복 확인, 먼저 미리보기: RSS/JSON 등 안정적인 프로토콜을 우선합니다. 첫 수집이 성공하고 실제 항목이 있어야 연동 완료입니다. 1차 신원은 운영 주체 또는 공식 교차 링크 증거가 있어야 합니다.">
       <div className="grid gap-5 xl:grid-cols-[1fr_420px]">
-        <Card title="信源定义">
+        <Card title="소식원 정의">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="ID" hint="小写字母、数字和连字符，创建后不可改">
+            <Field label="ID" hint="소문자, 숫자, 하이픈. 생성 후 변경 불가">
               <Input value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value.toLowerCase() })} placeholder="openai-blog" />
             </Field>
-            <Field label="名称">
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="OpenAI 博客" />
+            <Field label="이름">
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="OpenAI 블로그" />
             </Field>
-            <Field label="类型">
+            <Field label="유형">
               <Select
                 value={form.kind}
                 onChange={(e) => {
@@ -62,26 +62,26 @@ export default function NewSource() {
                 {Object.entries(KIND_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </Select>
             </Field>
-            <Field label="采集间隔（分钟）">
+            <Field label="수집 간격(분)">
               <Input type="number" min={1} max={1440} value={form.interval_minutes} onChange={(e) => setForm({ ...form, interval_minutes: Number(e.target.value) })} />
             </Field>
-            <Field label="参与方式">
+            <Field label="참여 방식">
               <Select value={form.participation_mode} onChange={(e) => setForm({ ...form, participation_mode: e.target.value })}>
                 {Object.entries(MODE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </Select>
             </Field>
-            <Field label="等级" hint="仅 T1 为一手信源">
+            <Field label="등급" hint="T1만 1차 소식원">
               <Select value={form.tier} onChange={(e) => setForm({ ...form, tier: e.target.value })}>
                 {Object.entries(TIER_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </Select>
             </Field>
-            <Field label="标签（逗号分隔）">
+            <Field label="태그(쉼표로 구분)">
               <Input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
             </Field>
             <div className="flex flex-col justify-end gap-2 text-[13px] text-ink-2">
               {([
-                ["site_fulltext", "站内可展示全文"],
-                ["syndicate_fulltext", "对外接口可带全文"],
+                ["site_fulltext", "사이트 내 전문 표시"],
+                ["syndicate_fulltext", "외부 API에 전문 포함"],
               ] as const).map(([k, label]) => (
                 <label key={k} className="inline-flex items-center gap-2">
                   <input type="checkbox" className="size-4 accent-[var(--accent)]" checked={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.checked })} />
@@ -91,14 +91,14 @@ export default function NewSource() {
             </div>
           </div>
           <div className="mt-4">
-            <Field label="采集配置（JSON）">
+            <Field label="수집 설정(JSON)">
               <Textarea className="font-mono !text-[12px]" rows={10} value={config} onChange={(e) => setConfig(e.target.value)} spellCheck={false} />
             </Field>
             {error && <div className="mt-1 text-[12.5px] text-hot">{error}</div>}
           </div>
           {duplicate && (
             <div className="mt-4 rounded-card bg-amber/10 px-4 py-3 text-[13px] text-ink-2 ring-1 ring-amber/25">
-              这个地址已经在监控：<Link className="font-medium text-accent" to={`/admin/sources/${encodeURIComponent(duplicate.id)}`}>{duplicate.name}</Link>（{duplicate.id}）。没有新建。
+              이 주소는 이미 모니터링 중입니다: <Link className="font-medium text-accent" to={`/admin/sources/${encodeURIComponent(duplicate.id)}`}>{duplicate.name}</Link>({duplicate.id}). 새로 만들지 않았습니다.
             </div>
           )}
           <div className="mt-5 flex justify-end gap-2">
@@ -111,7 +111,7 @@ export default function NewSource() {
                 if (r) setPreview(r);
               }}
             >
-              预览抓取
+              미리보기 수집
             </Button>
             <Button
               tone="primary"
@@ -131,25 +131,25 @@ export default function NewSource() {
                 else setDuplicate(r.duplicate);
               }}
             >
-              创建
+              만들기
             </Button>
           </div>
         </Card>
-        <Card title={preview ? `预览：${preview.count} 条（${preview.ms}ms）` : "预览"}>
+        <Card title={preview ? `미리보기: ${preview.count}건 (${preview.ms}ms)` : "미리보기"}>
           {!preview ? (
-            <Empty>填好配置后点“预览抓取”，这里显示将会采集到的条目（不入库）。</Empty>
+            <Empty>설정을 입력한 뒤 “미리보기 수집”을 누르면 수집될 항목이 여기에 표시됩니다(저장 안 함).</Empty>
           ) : preview.items.length ? (
             <ul className="space-y-3">
               {preview.items.map((i) => (
                 <li key={i.url} className="text-[13px]">
                   <a href={i.url} target="_blank" rel="noreferrer" className="font-medium text-ink hover:text-accent">{i.title}</a>
-                  <div className="text-[12px] text-ink-4">{i.publishedAt ? bj(i.publishedAt, true) : "无发布时间"}</div>
+                  <div className="text-[12px] text-ink-4">{i.publishedAt ? bj(i.publishedAt, true) : "발행 시간 없음"}</div>
                   {i.excerpt && <div className="mt-0.5 line-clamp-2 text-[12.5px] text-ink-3">{i.excerpt}</div>}
                 </li>
               ))}
             </ul>
           ) : (
-            <Empty>没有抓到条目。</Empty>
+            <Empty>수집된 항목이 없습니다.</Empty>
           )}
         </Card>
       </div>

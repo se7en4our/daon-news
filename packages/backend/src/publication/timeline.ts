@@ -33,7 +33,7 @@ function binding(q: TimelineQuery): string {
 
 /**
  * Public pool reports linked to the given facts, under the same
- * filters (non-selected included): the sets "另有 N 家信源报道" expands and the group counts come from.
+ * filters (non-selected included): the sets the "N more sources reported" link expands and the group counts come from.
  */
 async function groupPool(q: TimelineQuery, now: Date, factIds: number[]) {
   if (!factIds.length) return [];

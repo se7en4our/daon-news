@@ -402,7 +402,7 @@ test("an editor moves a report into the fact it repeats: no false development re
   assert.deepEqual([...await sql`SELECT fact_id, role, manual, evidence FROM fact_articles WHERE article_id=${repost}`].map(r => ({ ...r, fact_id: Number(r.fact_id) })),
     [{ fact_id: g.factId, role: "report", manual: true, evidence: "Tasks consume usage." }]);
   assert.equal((await sql`SELECT 1 FROM story_signals WHERE article_id=${repost} AND story_id=${g.storyId}`).length, 1, "its heat evidence stays with the story");
-  await assert.rejects(moveToFact(repost, "f-missing", "x", "test"), /目标事实不存在/);
+  await assert.rejects(moveToFact(repost, "f-missing", "x", "test"), /대상 사실이 존재하지 않/);
 });
 
 test("an in-flight digest cannot overwrite an editor revision or a merge, and its paid response remains reusable", async () => {

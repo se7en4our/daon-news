@@ -12,7 +12,7 @@ import { markStaleDeliveries } from "../notify/deliver.ts";
 import { markStalePendingReceipts, releaseUnknownReceipt } from "../providers/receipts.ts";
 
 const AUTO_RELEASE_AFTER_MS = 30 * 60_000;
-export const AUTO_RELEASE_NOTE = "自动放行：结果未知超过 30 分钟，未核对是否计费";
+export const AUTO_RELEASE_NOTE = "자동 통과: 결과 불확실 상태가 30분을 초과했으며 과금 여부는 대조하지 않음";
 
 async function release(id: number, error: string, actor: string, note: string, billed: boolean | null) {
   return sql.begin(async (tx) => {
@@ -29,8 +29,8 @@ export async function releaseReceipt(id: number, input: { billed: boolean; note:
   if (!input.note?.trim()) throw new Error("note is required");
   const [row] = await sql<{ status: string }[]>`SELECT status FROM receipts WHERE id = ${id}`;
   if (!row) return null;
-  if (row.status !== "unknown") throw new Conflict("只有结果未知的回执需要人工核对");
-  const error = `人工核对：${input.billed ? "供应商已计费但结果未取回" : "供应商未计费"}。${input.note}`;
+  if (row.status !== "unknown") throw new Conflict("결과가 불확실한 영수증만 수동 대조가 필요합니다");
+  const error = `수동 대조: ${input.billed ? "공급사가 과금했으나 결과를 가져오지 못함" : "공급사 과금 없음"}. ${input.note}`;
   return release(id, error, actor, input.note, input.billed);
 }
 
@@ -47,7 +47,7 @@ export async function autoReleaseUnknownReceipts(now = Date.now()) {
   let released = 0;
   let requeued = 0;
   for (const r of rows) {
-    const done = await release(r.id, AUTO_RELEASE_NOTE, "ops.recover", "结果未知，自动放行一次", null);
+    const done = await release(r.id, AUTO_RELEASE_NOTE, "ops.recover", "결과 불확실, 자동으로 한 번 통과", null);
     if (done) released += 1;
     if (done?.requeued) requeued += 1;
   }

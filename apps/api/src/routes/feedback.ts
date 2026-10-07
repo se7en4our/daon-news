@@ -10,15 +10,15 @@ async function readForm(raw: unknown, contentType: string): Promise<FeedbackBody
   try {
     form = await new Response(raw as Buffer<ArrayBuffer>, { headers: { "content-type": contentType } }).formData();
   } catch {
-    throw new FeedbackRejected(400, "invalid_request", "截图上传格式不正确，请重新提交。");
+    throw new FeedbackRejected(400, "invalid_request", "스크린샷 업로드 형식이 올바르지 않습니다. 다시 제출하세요.");
   }
   const text = (key: string) => {
     const value = form.get(key);
-    if (value !== null && typeof value !== "string") throw new FeedbackRejected(400, "invalid_request", "反馈文字格式不正确。");
+    if (value !== null && typeof value !== "string") throw new FeedbackRejected(400, "invalid_request", "피드백 텍스트 형식이 올바르지 않습니다.");
     return value;
   };
   const file = form.get("screenshot");
-  if (file !== null && !(file instanceof File)) throw new FeedbackRejected(400, "invalid_request", "截图上传格式不正确。");
+  if (file !== null && !(file instanceof File)) throw new FeedbackRejected(400, "invalid_request", "스크린샷 업로드 형식이 올바르지 않습니다.");
   return {
     content: text("content") ?? "", email: text("email"), pageUrl: text("pageUrl"),
     screenshot: file ? { mime: file.type, data: Buffer.from(await file.arrayBuffer()) } : null,
@@ -37,7 +37,7 @@ export function registerFeedback(app: FastifyInstance) {
     } catch (error) {
       if (error instanceof FeedbackRejected) return sendProblem(req, reply, { status: error.status, code: error.code, detail: error.message, retryAfter: error.retryAfter });
       req.log.error({ err: error }, "feedback failed");
-      return sendProblem(req, reply, { status: 503, code: "temporarily_unavailable", detail: "暂时无法提交，请稍后再试。", retryAfter: 30 });
+      return sendProblem(req, reply, { status: 503, code: "temporarily_unavailable", detail: "현재 제출할 수 없습니다. 잠시 후 다시 시도하세요.", retryAfter: 30 });
     }
   });
 }

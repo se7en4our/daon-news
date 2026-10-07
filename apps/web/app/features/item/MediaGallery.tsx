@@ -44,12 +44,12 @@ export function MediaGallery({ media, postUrl }: { media: MediaView[]; postUrl: 
             />
           );
           return m.kind === "video" ? (
-            <a key={m.url} href={postUrl} target="_blank" rel="noopener noreferrer" aria-label="打开原推播放视频" className={tile}>
+            <a key={m.url} href={postUrl} target="_blank" rel="noopener noreferrer" aria-label="원본 트윗에서 동영상 재생" className={tile}>
               {img}
               <PlayMark />
             </a>
           ) : (
-            <button key={m.url} type="button" onClick={() => setOpen(images.indexOf(m))} aria-label={m.alt ? `查看大图：${m.alt}` : "查看大图"} className={`${tile} cursor-zoom-in`}>
+            <button key={m.url} type="button" onClick={() => setOpen(images.indexOf(m))} aria-label={m.alt ? `크게 보기: ${m.alt}` : "크게 보기"} className={`${tile} cursor-zoom-in`}>
               {img}
             </button>
           );

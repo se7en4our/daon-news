@@ -169,13 +169,13 @@ function periodOverview(content: Record<string, any>, kind: "weekly" | "monthly"
   if (!changed && typeof content.overview === "string" && content.overview) return content.overview;
   const shown = leadCandidates(content, "periodic").filter((e) => !e.itemId || !gone.has(String(e.itemId)));
   if (!shown.length) return null;
-  return `${kind === "weekly" ? "本周" : "本月"} ${shown.length} ${REPORTS.entry.measure}${REPORTS.entry.noun}，最受关注的是：${shown.slice(0, 3).map((e) => e.title).join("；")}。`;
+  return `${kind === "weekly" ? "이번 주" : "이번 달"} ${shown.length}${REPORTS.entry.measure}의 ${REPORTS.entry.noun} 중 가장 주목받은 것: ${shown.slice(0, 3).map((e) => e.title).join(", ")}.`;
 }
 
-/** A weekly or monthly's own headline; the composer's "<site name> 周报 · 2026-W38" names the issue, not its news. */
+/** A weekly or monthly's own headline; the composer's "<site name> 주간 리포트 · 2026-W38" names the issue, not its news. */
 function periodicHeadline(content: Record<string, any>): string | null {
   const text = String(content.headline ?? content.title ?? "");
-  const issueName = text.startsWith(`${SITE.name} `) && /^[周月]报 · /.test(text.slice(SITE.name.length + 1));
+  const issueName = text.startsWith(`${SITE.name} `) && /^(주간 리포트|월간 리포트) · /.test(text.slice(SITE.name.length + 1));
   return text && !issueName ? text : null;
 }
 
@@ -360,8 +360,8 @@ export async function loadReport(kind: ReportKind, key: string): Promise<ReportD
   const [{ prev, next }, picture] = await Promise.all([neighbors(kind, key), leadItem?.itemId && leadItem.available ? leadCover(leadItem.itemId) : null]);
   const cover = picture && leadItem ? { ...picture, caption: kind === "daily" || c.leadItemId ? null : leadItem.title } : null;
   const headline = kind === "daily" ? null : periodicHeadline(c);
-  const title = kind === "daily" ? `${withSubject("日报")} · ${key}`
-    : String((hasCitedLead && c.title === headline ? named?.title : c.title) ?? (kind === "weekly" ? `${SITE.name} 周报 · ${key}` : `${SITE.name} 月报 · ${key}`));
+  const title = kind === "daily" ? `${withSubject("데일리 브리핑")} · ${key}`
+    : String((hasCitedLead && c.title === headline ? named?.title : c.title) ?? (kind === "weekly" ? `${SITE.name} 주간 리포트 · ${key}` : `${SITE.name} 월간 리포트 · ${key}`));
   return {
     kind,
     key,

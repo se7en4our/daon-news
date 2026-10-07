@@ -13,7 +13,7 @@ import { sessionCache } from "../../lib/session-cache";
 const reportsUrl = (factId: string, filters: TimelineFilters | undefined) =>
   listPath(`/api/site/groups/${encodeURIComponent(factId)}/reports`, filters ? filterParams(filters) : {});
 
-const labelOf = (group: GroupInfo) => (group.additionalSourceCount > 0 ? `另有 ${group.additionalSourceCount} 家信源报道` : `${group.reportCount} 篇报道`);
+const labelOf = (group: GroupInfo) => (group.additionalSourceCount > 0 ? `소식원 ${group.additionalSourceCount}곳 추가 보도` : `보도 ${group.reportCount}건`);
 
 // The groups left open in each history entry, with what they showed (null: still loading): back from an
 // item finds them open again. In memory for back within the app; in session storage for a page the
@@ -85,11 +85,11 @@ function Panel({ open, children }: { open: boolean; children: ReactNode }) {
 
 function LoadState({ loading, error, onRetry, empty }: { loading: boolean; error: boolean; onRetry: () => void; empty: boolean }) {
   if (loading && empty) return <div className="space-y-2 py-1">{[0, 1].map((i) => <div key={i} className="skeleton h-4" />)}</div>;
-  if (error) return <button type="button" onClick={onRetry} className="min-h-11 py-1 text-[12.5px] text-hot lg:min-h-0">暂时无法加载，点此重试</button>;
+  if (error) return <button type="button" onClick={onRetry} className="min-h-11 py-1 text-[12.5px] text-hot lg:min-h-0">지금은 불러올 수 없습니다. 눌러서 다시 시도</button>;
   return null;
 }
 
-/** "另有 N 家信源报道": the other reports of the fact the card stands for, behind a toggle. */
+/** "소식원 N곳 추가 보도": the other reports of the fact the card stands for, behind a toggle. */
 export function GroupSources({ group, filters, parentId }: { group: GroupInfo; filters?: TimelineFilters; parentId: string }) {
   const entry = useLocation().key;
   const key = `${group.factId}|${parentId}`;
@@ -131,7 +131,7 @@ export function GroupSources({ group, filters, parentId }: { group: GroupInfo; f
               <Link viewTransition to={`/items/${r.id}`} className="min-w-0 flex-1 truncate text-ink-2 hover:text-accent">
                 {r.title}
               </Link>
-              <a href={r.originalUrl} target="_blank" rel="noopener noreferrer" aria-label="打开原文" className="shrink-0 text-ink-4 hover:text-accent">
+              <a href={r.originalUrl} target="_blank" rel="noopener noreferrer" aria-label="원문 열기" className="shrink-0 text-ink-4 hover:text-accent">
                 <IconArrowUpRight size={13} />
               </a>
             </li>
@@ -182,7 +182,7 @@ function GroupSheet({ open, onClose, group, filters, parentId }: {
   }, [open]);
   const others = (reports.reports ?? []).filter((r) => r.id !== parentId);
   return (
-    <Sheet open={open} onClose={onClose} title="同一新闻的其他报道">
+    <Sheet open={open} onClose={onClose} title="같은 뉴스의 다른 보도">
       <div className="px-5">
         <ul className="divide-y divide-line-soft">
           {others.map((r) => (
@@ -193,7 +193,7 @@ function GroupSheet({ open, onClose, group, filters, parentId }: {
                 </span>
                 <span className="mt-0.5 line-clamp-2 text-[15px] leading-[1.5] text-ink-2">{r.title}</span>
               </Link>
-              <a href={r.originalUrl} target="_blank" rel="noopener noreferrer" aria-label="打开原文" className="-mr-2 grid size-11 shrink-0 place-items-center rounded-full text-ink-4 active:bg-bg-sunk">
+              <a href={r.originalUrl} target="_blank" rel="noopener noreferrer" aria-label="원문 열기" className="-mr-2 grid size-11 shrink-0 place-items-center rounded-full text-ink-4 active:bg-bg-sunk">
                 <IconArrowUpRight size={16} />
               </a>
             </li>

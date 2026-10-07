@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-/** A small spaced label in the accent, led by a short bar: 头条, 今日看点, 关于本站. */
+/** A small spaced label in the accent, led by a short bar: 헤드라인, 오늘의 포인트, 사이트 소개. */
 export function Kicker({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <div className={`flex items-center gap-2.5 text-[12px] font-semibold tracking-[0.3em] text-accent ${className}`}>

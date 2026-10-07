@@ -15,7 +15,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return adminGet<AdminContentChain>(request, `/api/admin/content/${encodeURIComponent(params.id)}`);
 }
 
-export const meta: Route.MetaFunction = ({ loaderData }) => [{ title: `${loaderData?.publication?.title ?? loaderData?.article.title ?? "内容"} · ${SITE.name} 后台` }];
+export const meta: Route.MetaFunction = ({ loaderData }) => [{ title: `${loaderData?.publication?.title ?? loaderData?.article.title ?? "콘텐츠"} · ${SITE.name} 관리자` }];
 
 function Step({ title, meta, children, tone = "accent", last }: { title: ReactNode; meta?: ReactNode; children: ReactNode; tone?: "accent" | "muted" | "bad"; last?: boolean }) {
   const dot = tone === "bad" ? "bg-hot" : tone === "muted" ? "bg-ink-4" : "bg-accent";
@@ -75,52 +75,52 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
           {p?.visibility !== "withdrawn" && p && (
             <>
               <span>·</span>
-              <a className="text-accent" href={`/items/${a.id}`} target="_blank" rel="noreferrer">公开页</a>
+              <a className="text-accent" href={`/items/${a.id}`} target="_blank" rel="noreferrer">공개 페이지</a>
             </>
           )}
         </span>
       }
       actions={
         <>
-          <Button onClick={() => setDialog("visibility")}>公开范围</Button>
-          {p && <Button onClick={() => setDialog("seo")}>{p.indexable ? "取消收录" : "标记收录"}</Button>}
-          <Button onClick={openOverride}>人工修正</Button>
-          <Button onClick={() => setDialog("analyze")}>重新评估</Button>
+          <Button onClick={() => setDialog("visibility")}>공개 범위</Button>
+          {p && <Button onClick={() => setDialog("seo")}>{p.indexable ? "색인 해제" : "색인 표시"}</Button>}
+          <Button onClick={openOverride}>수동 수정</Button>
+          <Button onClick={() => setDialog("analyze")}>재평가</Button>
         </>
       }
     >
       <div className="mb-5 flex flex-wrap gap-1.5">
-        {p ? <Badge tone={p.visibility === "public" ? "ok" : "warn"}>{VISIBILITY_LABEL[p.visibility] ?? p.visibility}</Badge> : <Badge>未公开</Badge>}
-        {p?.selected && <Badge tone="accent">精选</Badge>}
-        {p?.eligible === false && <Badge>不进公开面</Badge>}
-        {a.backfill && <Badge tone="warn">历史回灌</Badge>}
-        <Badge>处理 {a.processing_state}</Badge>
-        {c.override && <Badge tone="info" title={c.override.reason ?? undefined}>有人工设置 v{c.override.version}</Badge>}
+        {p ? <Badge tone={p.visibility === "public" ? "ok" : "warn"}>{VISIBILITY_LABEL[p.visibility] ?? p.visibility}</Badge> : <Badge>미공개</Badge>}
+        {p?.selected && <Badge tone="accent">엄선</Badge>}
+        {p?.eligible === false && <Badge>공개면 제외</Badge>}
+        {a.backfill && <Badge tone="warn">과거 소급</Badge>}
+        <Badge>처리 {a.processing_state}</Badge>
+        {c.override && <Badge tone="info" title={c.override.reason ?? undefined}>수동 설정 v{c.override.version}</Badge>}
       </div>
       {a.processing_error && <div className="mb-5 rounded-card bg-hot-soft px-4 py-3 text-[13px] text-hot ring-1 ring-hot/20">{a.processing_error}</div>}
 
       <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
-        <Card title="处理链路">
+        <Card title="처리 경로">
           <ol className="pt-1">
-            <Step title="信源" meta={`${KIND_LABEL[a.source_kind] ?? a.source_kind} · ${String(a.tier).replace("_", ".")} · ${MODE_LABEL[a.participation_mode] ?? a.participation_mode}`}>
+            <Step title="소식원" meta={`${KIND_LABEL[a.source_kind] ?? a.source_kind} · ${String(a.tier).replace("_", ".")} · ${MODE_LABEL[a.participation_mode] ?? a.participation_mode}`}>
               <Link className="text-ink hover:text-accent" to={`/admin/sources/${encodeURIComponent(a.source_id)}`}>{a.source_name}</Link>
-              <span className="text-ink-4"> · 站内全文 {a.site_fulltext ? "允许" : "不允许"} · 对外全文 {a.syndicate_fulltext ? "允许" : "不允许"}</span>
+              <span className="text-ink-4"> · 사이트 내 전문 {a.site_fulltext ? "허용" : "불허"} · 외부 전문 {a.syndicate_fulltext ? "허용" : "불허"}</span>
             </Step>
-            <Step title="发现" meta={`${c.discoveries.length} 次`}>
+            <Step title="발견" meta={`${c.discoveries.length}회`}>
               <ul className="space-y-1">
                 {c.discoveries.map((d, i) => (
                   <li key={i} className="flex gap-2">
                     <span className="num text-ink-4">{bj(d.discovered_at, true)}</span>
                     <span>{d.via}</span>
-                    {d.source_id !== a.source_id && <span className="text-ink-3">经 {d.source_id}</span>}
+                    {d.source_id !== a.source_id && <span className="text-ink-3">경유 {d.source_id}</span>}
                   </li>
                 ))}
               </ul>
               <div className="mt-1.5 text-[12px] text-ink-4">
-                原文时间 {a.published_at ? bj(a.published_at, true) : "未知"}{a.published_at_claim && !a.published_at ? `（声称 ${a.published_at_claim}，未采信）` : ""} · 时间轴 {bj(a.timeline_at, true)}
+                원문 시간 {a.published_at ? bj(a.published_at, true) : "불명"}{a.published_at_claim && !a.published_at ? `(주장 ${a.published_at_claim}, 미채택)` : ""} · 타임라인 {bj(a.timeline_at, true)}
               </div>
             </Step>
-            <Step title="正文与修订" meta={`第 ${a.revision} 版 · 正文 ${a.body_status} · ${a.body_chars ?? 0} 字符`}>
+            <Step title="본문 및 수정" meta={`제 ${a.revision}판 · 본문 ${a.body_status} · ${a.body_chars ?? 0}자`}>
               {c.revisions.length ? (
                 <ul className="space-y-1">
                   {c.revisions.map((r) => (
@@ -132,23 +132,23 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
                   ))}
                 </ul>
               ) : (
-                <span className="text-ink-4">只有初始版本</span>
+                <span className="text-ink-4">초기 버전만 있음</span>
               )}
               <div className="mt-2 flex gap-2">
-                <Button size="sm" onClick={() => setDialog("extract")}>重新抽取正文</Button>
+                <Button size="sm" onClick={() => setDialog("extract")}>본문 재추출</Button>
               </div>
             </Step>
-            <Step title="模型判断" meta={`${c.analyses.length} 次`} tone={c.analyses.length ? "accent" : "muted"}>
+            <Step title="모델 판단" meta={`${c.analyses.length}회`} tone={c.analyses.length ? "accent" : "muted"}>
               {c.analyses.length ? (
                 <div className="space-y-3">
                   {c.analyses.map((an) => (
                     <div key={an.id} className="rounded-control bg-bg-sunk/60 p-3 ring-1 ring-line">
                       <div className="flex flex-wrap items-center gap-1.5 text-[12px]">
                         <Badge tone={an.relevance === "pass" ? "ok" : "muted"}>{an.relevance}</Badge>
-                        {an.selected && <Badge tone="accent">入选</Badge>}
-                        <Badge tone="info">分数 {an.score}</Badge>
+                        {an.selected && <Badge tone="accent">선정</Badge>}
+                        <Badge tone="info">점수 {an.score}</Badge>
                         {an.category && <Badge>{CATEGORY_LABELS[an.category as keyof typeof CATEGORY_LABELS] ?? an.category}</Badge>}
-                        <span className="text-ink-4">{an.model} · {an.prompt_version} · 输入 v{an.input_revision} · {an.origin} · {bj(an.created_at)}</span>
+                        <span className="text-ink-4">{an.model} · {an.prompt_version} · 입력 v{an.input_revision} · {an.origin} · {bj(an.created_at)}</span>
                       </div>
                       {an.title_zh && <div className="mt-2 font-medium text-ink">{an.title_zh}</div>}
                       {an.reason_zh && <div className="mt-1 text-[12.5px] leading-relaxed text-ink-3">{an.reason_zh}</div>}
@@ -156,7 +156,7 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
                         <div className="mt-2 flex flex-wrap gap-1.5 text-[11.5px]">
                           {an.receipts.map((r) => (
                             <span key={r.id} className="num rounded bg-surface px-1.5 py-0.5 text-ink-3 ring-1 ring-line">
-                              回执 #{r.id} · {r.status} · {r.model ?? r.service}{r.cost !== null ? ` · ${money(r.cost)}` : ""}
+                              영수증 #{r.id} · {r.status} · {r.model ?? r.service}{r.cost !== null ? ` · ${money(r.cost)}` : ""}
                             </span>
                           ))}
                         </div>
@@ -165,61 +165,61 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
                   ))}
                 </div>
               ) : (
-                <span className="text-ink-4">{a.participation_mode === "editorial" ? "还没有判断（等待队列或失败）" : "氛围信源不做编辑判断"}</span>
+                <span className="text-ink-4">{a.participation_mode === "editorial" ? "아직 판단 없음(대기열 또는 실패)" : "분위기 소식원은 편집 판단을 하지 않음"}</span>
               )}
             </Step>
-            <Step title="公开" tone={p ? (p.visibility === "withdrawn" ? "bad" : "accent") : "muted"} meta={p ? `更新于 ${bj(p.updated_at, true)}` : undefined}>
+            <Step title="공개" tone={p ? (p.visibility === "withdrawn" ? "bad" : "accent") : "muted"} meta={p ? `업데이트 ${bj(p.updated_at, true)}` : undefined}>
               {p ? (
                 <KV
                   items={[
-                    ["范围", VISIBILITY_LABEL[p.visibility] ?? p.visibility],
-                    ["精选", p.selected ? `是 · 可见于 ${p.visible_after ? bj(p.visible_after, true) : "立即"}` : "否"],
-                    ["栏目", p.category ? CATEGORY_LABELS[p.category as keyof typeof CATEGORY_LABELS] ?? p.category : null],
-                    ["标签", (p.tags as string[] | null)?.join("、")],
-                    ["摘要", p.summary],
-                    ["推荐理由", p.reason],
+                    ["범위", VISIBILITY_LABEL[p.visibility] ?? p.visibility],
+                    ["엄선", p.selected ? `예 · 공개 ${p.visible_after ? bj(p.visible_after, true) : "즉시"}` : "아니오"],
+                    ["카테고리", p.category ? CATEGORY_LABELS[p.category as keyof typeof CATEGORY_LABELS] ?? p.category : null],
+                    ["태그", (p.tags as string[] | null)?.join(", ")],
+                    ["요약", p.summary],
+                    ["추천 이유", p.reason],
                     [
-                      "正文展示",
-                      `${p.body_mode}${p.syndicate ? " · 对外可带全文" : ""}${
-                        p.indexable ? (p.seo_indexed_at ? " · 可收录（手动标记）" : " · 可收录（精选自动）") : p.seo_excluded_at ? " · 不收录（手动排除）" : " · 不收录"
+                      "본문 표시",
+                      `${p.body_mode}${p.syndicate ? " · 외부 전문 포함 가능" : ""}${
+                        p.indexable ? (p.seo_indexed_at ? " · 색인 가능(수동 표시)" : " · 색인 가능(엄선 자동)") : p.seo_excluded_at ? " · 색인 제외(수동 제외)" : " · 색인 안 함"
                       }`,
                     ],
                   ]}
                 />
               ) : (
-                <span className="text-ink-4">没有公开投影（未通过相关性或仍在处理）</span>
+                <span className="text-ink-4">공개 투영 없음(관련성 미통과 또는 처리 중)</span>
               )}
               {c.override && (
                 <div className="mt-3 rounded-control bg-accent-softer p-3 ring-1 ring-accent/15">
-                  <div className="text-[12px] text-ink-3">人工设置 v{c.override.version} · {c.override.updated_by} · {bj(c.override.updated_at, true)}{c.override.reason ? ` · ${c.override.reason}` : ""}</div>
-                  <Json value={{ visibility: c.override.visibility, ...c.override.fields }} label="覆盖字段" collapsed={false} />
+                  <div className="text-[12px] text-ink-3">수동 설정 v{c.override.version} · {c.override.updated_by} · {bj(c.override.updated_at, true)}{c.override.reason ? ` · ${c.override.reason}` : ""}</div>
+                  <Json value={{ visibility: c.override.visibility, ...c.override.fields }} label="재정의 필드" collapsed={false} />
                 </div>
               )}
             </Step>
-            <Step title="精选同步流水" meta={`${c.ledger.length} 条`} tone={c.ledger.length ? "accent" : "muted"}>
+            <Step title="엄선 동기화 로그" meta={`${c.ledger.length}건`} tone={c.ledger.length ? "accent" : "muted"}>
               {c.ledger.length ? (
                 <ul className="space-y-1">
                   {c.ledger.map((l) => (
                     <li key={l.seq} className="flex gap-2">
                       <span className="num text-ink-4">#{l.seq}</span>
                       <Badge tone={l.op === "remove" ? "warn" : "ok"}>{l.op}</Badge>
-                      <span className="num text-ink-4">可见 {bj(l.visible_at)} · 写入 {bj(l.changed_at)}</span>
+                      <span className="num text-ink-4">공개 {bj(l.visible_at)} · 기록 {bj(l.changed_at)}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <span className="text-ink-4">没有进入过精选同步流</span>
+                <span className="text-ink-4">엄선 동기화 흐름에 들어간 적 없음</span>
               )}
             </Step>
-            <Step title="事件归组" tone={story ? "accent" : "muted"} meta={a.grouped_at ? `归组于 ${bj(a.grouped_at, true)}` : "未归组"}>
+            <Step title="이슈 그룹화" tone={story ? "accent" : "muted"} meta={a.grouped_at ? `그룹화 ${bj(a.grouped_at, true)}` : "미그룹화"}>
               {c.membership.map((m) => (
                 <div key={m.fact_id} className="mb-2">
                   <div>
-                    事实 <span className="font-mono text-[12px]">#{m.fact_id}</span> {m.fact_title} <Badge>{m.role}</Badge> {m.manual && <Badge tone="info">人工</Badge>}
+                    사실 <span className="font-mono text-[12px]">#{m.fact_id}</span> {m.fact_title} <Badge>{m.role}</Badge> {m.manual && <Badge tone="info">수동</Badge>}
                   </div>
                   {m.story_public_id && (
                     <div className="mt-0.5">
-                      事件 <a className="text-accent" href={`/story/${m.story_public_id}`} target="_blank" rel="noreferrer">{m.story_title}</a> <span className="font-mono text-[12px] text-ink-4">#{m.story_id}</span>
+                      이슈 <a className="text-accent" href={`/story/${m.story_public_id}`} target="_blank" rel="noreferrer">{m.story_title}</a> <span className="font-mono text-[12px] text-ink-4">#{m.story_id}</span>
                     </div>
                   )}
                 </div>
@@ -230,19 +230,19 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
                     <li key={i} className="flex flex-wrap gap-2">
                       <span className="num text-ink-4">{bj(d.created_at)}</span>
                       <Badge>{d.verdict}</Badge>
-                      {d.fact_id && <span>事实 #{d.fact_id}</span>}
-                      {d.receipt_id && <span className="text-ink-4">回执 #{d.receipt_id}</span>}
+                      {d.fact_id && <span>사실 #{d.fact_id}</span>}
+                      {d.receipt_id && <span className="text-ink-4">영수증 #{d.receipt_id}</span>}
                     </li>
                   ))}
                 </ul>
               )}
               <div className="mt-2 flex flex-wrap gap-2">
-                <Button size="sm" onClick={() => setDialog("group")}>重新归组</Button>
-                {c.membership.length > 0 && <Button size="sm" onClick={() => setDialog("detach")}>移出事件</Button>}
-                {story?.story_id && <Button size="sm" onClick={() => setDialog("merge")}>把这个事件并入…</Button>}
+                <Button size="sm" onClick={() => setDialog("group")}>재그룹화</Button>
+                {c.membership.length > 0 && <Button size="sm" onClick={() => setDialog("detach")}>이슈에서 제외</Button>}
+                {story?.story_id && <Button size="sm" onClick={() => setDialog("merge")}>이 이슈를 병합…</Button>}
               </div>
             </Step>
-            <Step title="投递" last meta={`${c.deliveries.length} 条`} tone={c.deliveries.some((d) => d.status === "unknown") ? "bad" : c.deliveries.length ? "accent" : "muted"}>
+            <Step title="전송" last meta={`${c.deliveries.length}건`} tone={c.deliveries.some((d) => d.status === "unknown") ? "bad" : c.deliveries.length ? "accent" : "muted"}>
               {c.deliveries.length ? (
                 <ul className="space-y-1">
                   {c.deliveries.map((d, i) => (
@@ -254,24 +254,24 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
                   ))}
                 </ul>
               ) : (
-                <span className="text-ink-4">没有推送记录</span>
+                <span className="text-ink-4">전송 기록 없음</span>
               )}
             </Step>
           </ol>
         </Card>
 
         <div className="space-y-5">
-          <Card title="原始信息">
+          <Card title="원본 정보">
             <KV
               items={[
-                ["原标题", a.title],
-                ["作者", a.author],
-                ["语言", a.language],
-                ["身份键", <span className="break-all font-mono text-[11.5px]">{a.identity_key}</span>],
+                ["원제목", a.title],
+                ["작성자", a.author],
+                ["언어", a.language],
+                ["신원 키", <span className="break-all font-mono text-[11.5px]">{a.identity_key}</span>],
               ]}
             />
           </Card>
-          <Card title="修改记录">
+          <Card title="수정 기록">
             {c.history.length ? (
               <ul className="space-y-3 text-[12.5px]">
                 {c.history.map((h, i) => (
@@ -282,7 +282,7 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
                 ))}
               </ul>
             ) : (
-              <Empty>没有人工操作</Empty>
+              <Empty>수동 작업이 없습니다</Empty>
             )}
           </Card>
         </div>
@@ -290,33 +290,33 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
 
       <ReasonDialog
         open={dialog === "seo"}
-        title={p?.indexable ? "取消搜索收录" : "标记为可收录"}
+        title={p?.indexable ? "검색 색인 해제" : "색인 가능으로 표시"}
         description={
           p?.indexable
-            ? "详情页改回 noindex 并移出站点地图；即使是精选，也不再自动收录，直到重新标记。"
-            : "详情页默认 noindex，精选内容自动收录。标记后（仅在公开状态下）改为 index、进入站点地图，并在下一次 IndexNow 提交。适合有独立价值、摘要与正文完整的内容。"
+            ? "상세 페이지를 다시 noindex로 되돌리고 사이트맵에서 제외합니다. 엄선이라도 다시 표시할 때까지 자동 색인되지 않습니다."
+            : "상세 페이지는 기본 noindex이며, 엄선 콘텐츠는 자동 색인됩니다. 표시하면(공개 상태에서만) index로 바꾸고 사이트맵에 넣으며 다음 IndexNow에 제출합니다. 독립적 가치가 있고 요약·본문이 완비된 콘텐츠에 적합합니다."
         }
-        confirmLabel={p?.indexable ? "取消收录" : "标记收录"}
+        confirmLabel={p?.indexable ? "색인 해제" : "색인 표시"}
         busy={pending === "seo"}
         onClose={() => setDialog(null)}
-        onSubmit={async (reason) => (await run("POST", `${base}/seo`, { indexed: !p?.indexable, reason }, { label: "seo", success: p?.indexable ? "已取消收录" : "已标记为可收录" })) !== null}
+        onSubmit={async (reason) => (await run("POST", `${base}/seo`, { indexed: !p?.indexable, reason }, { label: "seo", success: p?.indexable ? "색인을 해제했습니다" : "색인 가능으로 표시했습니다" })) !== null}
       />
 
       <ReasonDialog
         open={dialog === "visibility"}
-        title="公开范围"
-        description="改动会同时作用于网页、API、RSS、MCP、同步流和搜索索引，并刷新缓存。来源方要求下架时，先核实身份与范围。"
+        title="공개 범위"
+        description="변경은 웹, API, RSS, MCP, 동기화 흐름, 검색 색인에 동시에 적용되며 캐시를 갱신합니다. 소식원 측이 내림을 요청하면 먼저 신원과 범위를 확인하세요."
         danger={visibility === "withdrawn"}
-        confirmLabel="应用"
+        confirmLabel="적용"
         busy={pending === "visibility"}
         onClose={() => setDialog(null)}
-        onSubmit={async (reason) => (await run("POST", `${base}/visibility`, { visibility, reason, version }, { label: "visibility", success: "公开范围已更新" })) !== null}
+        onSubmit={async (reason) => (await run("POST", `${base}/visibility`, { visibility, reason, version }, { label: "visibility", success: "공개 범위가 업데이트되었습니다" })) !== null}
       >
         <div className="grid gap-2 sm:grid-cols-3">
           {([
-            ["public", "公开", "正常展示"],
-            ["summary-only", "仅摘要", "不展示正文，保留标题摘要"],
-            ["withdrawn", "下架", "所有出口移除，链接 404"],
+            ["public", "공개", "정상 표시"],
+            ["summary-only", "요약만", "본문 미표시, 제목·요약 유지"],
+            ["withdrawn", "내림", "모든 출구에서 제거, 링크 404"],
           ] as const).map(([v, label, hint]) => (
             <label key={v} className={`cursor-pointer rounded-card p-3 ring-1 transition-colors ${visibility === v ? "bg-accent-soft ring-accent" : "ring-line-strong hover:bg-bg-sunk"}`}>
               <input type="radio" name="visibility" className="sr-only" checked={visibility === v} onChange={() => setVisibility(v)} />
@@ -329,9 +329,9 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
 
       <ReasonDialog
         open={dialog === "override"}
-        title="人工修正"
-        description="人工值优先于模型输出，之后的重处理不会覆盖；留空表示不修正该字段（清除已有修正请选“清除”）。"
-        confirmLabel="保存修正"
+        title="수동 수정"
+        description="수동 값은 모델 출력보다 우선하며 이후 재처리로 덮어쓰지 않습니다. 비워 두면 해당 필드를 수정하지 않습니다(기존 수정 제거는 “지움” 선택)."
+        confirmLabel="수정 저장"
         busy={pending === "override"}
         onClose={() => setDialog(null)}
         onSubmit={async (reason) => {
@@ -349,32 +349,32 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
             if (fields[k] === "true" || fields[k] === "false") next[k] = fields[k] === "true";
             else if (c.override?.fields[k] !== undefined) clear.push(k);
           }
-          return (await run("POST", `${base}/override`, { fields: next, clear, reason, version }, { label: "override", success: "修正已保存并重新发布" })) !== null;
+          return (await run("POST", `${base}/override`, { fields: next, clear, reason, version }, { label: "override", success: "수정이 저장되어 다시 발행되었습니다" })) !== null;
         }}
       >
-        <Field label="标题"><Input value={fields.title} placeholder={p?.title ?? ""} onChange={(e) => setFields({ ...fields, title: e.target.value })} /></Field>
-        <Field label="摘要"><Textarea rows={3} value={fields.summary} placeholder={p?.summary ?? ""} onChange={(e) => setFields({ ...fields, summary: e.target.value })} /></Field>
-        <Field label="推荐理由"><Textarea rows={2} value={fields.reason} placeholder={p?.reason ?? ""} onChange={(e) => setFields({ ...fields, reason: e.target.value })} /></Field>
+        <Field label="제목"><Input value={fields.title} placeholder={p?.title ?? ""} onChange={(e) => setFields({ ...fields, title: e.target.value })} /></Field>
+        <Field label="요약"><Textarea rows={3} value={fields.summary} placeholder={p?.summary ?? ""} onChange={(e) => setFields({ ...fields, summary: e.target.value })} /></Field>
+        <Field label="추천 이유"><Textarea rows={2} value={fields.reason} placeholder={p?.reason ?? ""} onChange={(e) => setFields({ ...fields, reason: e.target.value })} /></Field>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="栏目">
+          <Field label="카테고리">
             <Select value={fields.category} onChange={(e) => setFields({ ...fields, category: e.target.value })}>
-              <option value="">不修正</option>
+              <option value="">수정 안 함</option>
               {CATEGORY_KEYS.map((k) => <option key={k} value={k}>{CATEGORY_LABELS[k]}</option>)}
             </Select>
           </Field>
-          <Field label="标签（逗号分隔）"><Input value={fields.tags} onChange={(e) => setFields({ ...fields, tags: e.target.value })} /></Field>
-          <Field label="精选">
+          <Field label="태그(쉼표로 구분)"><Input value={fields.tags} onChange={(e) => setFields({ ...fields, tags: e.target.value })} /></Field>
+          <Field label="엄선">
             <Select value={fields.selected} onChange={(e) => setFields({ ...fields, selected: e.target.value })}>
-              <option value="">按模型</option>
-              <option value="true">强制入选</option>
-              <option value="false">强制不选</option>
+              <option value="">모델에 따름</option>
+              <option value="true">강제 선정</option>
+              <option value="false">강제 제외</option>
             </Select>
           </Field>
-          <Field label="推送">
+          <Field label="푸시">
             <Select value={fields.silent} onChange={(e) => setFields({ ...fields, silent: e.target.value })}>
-              <option value="">正常</option>
-              <option value="true">静默（入选也不推送）</option>
-              <option value="false">取消静默</option>
+              <option value="">정상</option>
+              <option value="true">무음(선정돼도 푸시 안 함)</option>
+              <option value="false">무음 해제</option>
             </Select>
           </Field>
         </div>
@@ -382,58 +382,58 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
 
       <ReasonDialog
         open={dialog === "analyze"}
-        title="对当前修订重新评估"
-        description="会发起一次新的模型调用（计费并记录回执）。同一次提交重复点击不会重复收费。"
+        title="현재 수정본 재평가"
+        description="새 모델 호출을 한 번 발생시킵니다(과금되고 영수증이 기록됩니다). 같은 제출을 반복 클릭해도 중복 과금되지 않습니다."
         requireReason={false}
-        confirmLabel="重新评估"
+        confirmLabel="재평가"
         busy={pending === "analyze"}
         onClose={() => setDialog(null)}
-        onSubmit={async () => (await run("POST", `${base}/rerun`, { step: "analyze" }, { label: "analyze", success: "已加入评估队列" })) !== null}
+        onSubmit={async () => (await run("POST", `${base}/rerun`, { step: "analyze" }, { label: "analyze", success: "평가 대기열에 추가되었습니다" })) !== null}
       />
       <ReasonDialog
         open={dialog === "extract"}
-        title="重新抽取正文"
+        title="본문 재추출"
         requireReason={false}
-        confirmLabel="重新抽取"
+        confirmLabel="재추출"
         busy={pending === "extract"}
         onClose={() => setDialog(null)}
-        onSubmit={async () => (await run("POST", `${base}/rerun`, { step: "extract" }, { label: "extract", success: "已加入抽取队列" })) !== null}
+        onSubmit={async () => (await run("POST", `${base}/rerun`, { step: "extract" }, { label: "extract", success: "추출 대기열에 추가되었습니다" })) !== null}
       />
       <ReasonDialog
         open={dialog === "group"}
-        title="重新归组"
-        description="人工归组的成员关系不会被覆盖。"
+        title="재그룹화"
+        description="수동 그룹화한 멤버십은 덮어쓰지 않습니다."
         requireReason={false}
-        confirmLabel="重新归组"
+        confirmLabel="재그룹화"
         busy={pending === "group"}
         onClose={() => setDialog(null)}
-        onSubmit={async () => (await run("POST", `${base}/rerun`, { step: "group" }, { label: "group", success: "已加入归组队列" })) !== null}
+        onSubmit={async () => (await run("POST", `${base}/rerun`, { step: "group" }, { label: "group", success: "그룹화 대기열에 추가되었습니다" })) !== null}
       />
       <ReasonDialog
         open={dialog === "detach"}
-        title="移出事件"
-        description="这条内容会作为独立内容展示，事件页随之更新。"
+        title="이슈에서 제외"
+        description="이 콘텐츠는 독립 콘텐츠로 표시되고 이슈 페이지도 함께 갱신됩니다."
         danger
-        confirmLabel="移出"
+        confirmLabel="제외"
         busy={pending === "detach"}
         onClose={() => setDialog(null)}
-        onSubmit={async (reason) => (await run("POST", `${base}/detach`, { reason }, { label: "detach", success: "已移出事件" })) !== null}
+        onSubmit={async (reason) => (await run("POST", `${base}/detach`, { reason }, { label: "detach", success: "이슈에서 제외했습니다" })) !== null}
       />
       <ReasonDialog
         open={dialog === "merge"}
-        title="合并事件"
-        description={`把事件 #${story?.story_id}（${story?.story_title ?? ""}）并入另一个事件；旧链接会跳转到新事件。`}
+        title="이슈 병합"
+        description={`이슈 #${story?.story_id}(${story?.story_title ?? ""})를 다른 이슈에 병합합니다. 기존 링크는 새 이슈로 이동됩니다.`}
         danger
-        confirmLabel="合并"
+        confirmLabel="병합"
         busy={pending === "merge"}
         onClose={() => setDialog(null)}
         onSubmit={async (reason) => {
           if (!/^\d+$/.test(mergeInto.trim())) return false;
-          return (await run("POST", "/api/admin/stories/merge", { from: story!.story_id, into: Number(mergeInto), reason }, { label: "merge", success: "事件已合并" })) !== null;
+          return (await run("POST", "/api/admin/stories/merge", { from: story!.story_id, into: Number(mergeInto), reason }, { label: "merge", success: "이슈가 병합되었습니다" })) !== null;
         }}
       >
-        <Field label="并入的目标事件编号" hint="在目标事件任一内容的诊断页里可以看到 #编号">
-          <Input inputMode="numeric" value={mergeInto} onChange={(e) => setMergeInto(e.target.value)} placeholder="例如 1234" />
+        <Field label="병합 대상 이슈 번호" hint="대상 이슈의 어느 콘텐츠든 진단 페이지에서 #번호를 볼 수 있습니다">
+          <Input inputMode="numeric" value={mergeInto} onChange={(e) => setMergeInto(e.target.value)} placeholder="예: 1234" />
         </Field>
       </ReasonDialog>
     </AdminPage>

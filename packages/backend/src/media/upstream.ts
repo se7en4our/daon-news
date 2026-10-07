@@ -32,7 +32,7 @@ export function upstreamAllowed(now = Date.now()): { ok: true } | { ok: false; r
 }
 
 function trip(window: "minute" | "day", now: number): { ok: false; reason: string } {
-  const reason = window === "minute" ? `图片代理上游流量超过每分钟 ${MINUTE_BUDGET / 1e6} MB` : `图片代理上游流量超过当日 ${DAY_BUDGET / 1e9} GB`;
+  const reason = window === "minute" ? `이미지 프록시 업스트림 트래픽이 분당 ${MINUTE_BUDGET / 1e6} MB 를 초과했습니다` : `이미지 프록시 업스트림 트래픽이 당일 ${DAY_BUDGET / 1e9} GB 를 초과했습니다`;
   if (tripped !== window) {
     tripped = window;
     void sql`INSERT INTO settings (key, value, updated_by) VALUES ('egress.imgproxy', ${sql.json({ window, reason, at: new Date(now).toISOString(), dayBytes: day.bytes })}, 'api')
@@ -52,5 +52,5 @@ export function recordUpstream(bytes: number, now = Date.now()): void {
 export async function upstreamFindings(now = Date.now()): Promise<Finding[]> {
   const [img] = await sql<{ value: { window: string; reason: string }; updated_at: Date }[]>`SELECT value, updated_at FROM settings WHERE key = 'egress.imgproxy'`;
   if (!img || img.value.window !== "day" || now - img.updated_at.getTime() >= 86400_000) return [];
-  return [{ key: "egress.imgproxy", level: "later", title: "图片代理今天的流量额度用完了，未缓存的图片到零点前显示不出来", detail: String(img.value.reason) }];
+  return [{ key: "egress.imgproxy", level: "later", title: "이미지 프록시의 오늘 트래픽 한도를 소진해, 캐시되지 않은 이미지는 자정 전까지 표시되지 않습니다", detail: String(img.value.reason) }];
 }

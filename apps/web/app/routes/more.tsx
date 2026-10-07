@@ -12,18 +12,18 @@ import { useStarred } from "../lib/local-state";
 import { ThemeSwitch } from "../components/shell/ThemeSwitch";
 import { IconBookmark, IconChevronRight, IconGrid, IconHeart, IconMessage, IconMoon, IconPlug, IconSparkles } from "../components/icons";
 
-export const handle: Screen = { tab: "me", name: "我的" };
+export const handle: Screen = { tab: "me", name: "내 메뉴" };
 
 export function headers() {
   return edgeTtl(300);
 }
 
 export function meta() {
-  return pageMeta({ title: "我的", path: "/more", noindex: true });
+  return pageMeta({ title: "내 메뉴", path: "/more", noindex: true });
 }
 
 /**
- * "我的", the phone's last tab (the address stays /more): this browser's bookmarks and appearance first,
+ * "내 메뉴", the phone's last tab (the address stays /more): this browser's bookmarks and appearance first,
  * then the tools, then the site's own pages.
  */
 type Row = { to: string; label: string; icon: ReactNode; detail?: ReactNode };
@@ -34,8 +34,8 @@ const agentWays = () => [...webModules().flatMap((m) => m.agentWays ?? []), "MCP
 /** The modules' tools first, then the engine's. */
 const tools = (): Row[] => [
   ...webModules().flatMap((m) => m.tools ?? []),
-  { to: "/topics", label: "主题", icon: <IconGrid size={20} /> },
-  { to: "/agent", label: "Agent 接入", icon: <IconPlug size={20} />, detail: agentWays().slice(0, 3).join(" · ") },
+  { to: "/topics", label: "주제", icon: <IconGrid size={20} /> },
+  { to: "/agent", label: "Agent 연동", icon: <IconPlug size={20} />, detail: agentWays().slice(0, 3).join(" · ") },
 ];
 
 function Group({ title, children }: { title?: string; children: ReactNode }) {
@@ -54,7 +54,7 @@ function RowLink({ row, dot = false }: { row: Row; dot?: boolean }) {
         <span className="text-ink-3">{row.icon}</span>
         <span className="flex flex-1 items-center gap-2">
           {row.label}
-          {dot && <span className="size-[7px] rounded-full bg-hot" aria-label="有新的更新" />}
+          {dot && <span className="size-[7px] rounded-full bg-hot" aria-label="새 업데이트 있음" />}
         </span>
         {row.detail && <span className="text-[14px] font-normal text-ink-4">{row.detail}</span>}
         <IconChevronRight size={16} className="text-ink-4" />
@@ -72,35 +72,35 @@ export default function MorePage() {
   useEffect(() => setHere(true), []);
   return (
     <div className="mx-auto max-w-[var(--page-max-reading)] pb-8">
-      <PhoneBar title="我的" large />
-      <h1 className="hidden pb-4 pt-1 text-[22px] font-bold text-ink lg:block">我的</h1>
+      <PhoneBar title="내 메뉴" large />
+      <h1 className="hidden pb-4 pt-1 text-[22px] font-bold text-ink lg:block">내 메뉴</h1>
       <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-4 2xl:grid-cols-3">
         <Group>
-          <RowLink row={{ to: "/starred", label: "收藏", icon: <IconBookmark size={20} />, detail: here && starred.length > 0 ? <span className="num">{starred.length}</span> : undefined }} />
+          <RowLink row={{ to: "/starred", label: "북마크", icon: <IconBookmark size={20} />, detail: here && starred.length > 0 ? <span className="num">{starred.length}</span> : undefined }} />
           <li className="flex min-h-[56px] items-center gap-3 px-4 text-[16px] font-medium text-ink">
             <span className="text-ink-3">
               <IconMoon size={20} />
             </span>
-            <span className="flex-1">外观</span>
+            <span className="flex-1">화면 설정</span>
             <ThemeSwitch className="w-[126px]" />
           </li>
         </Group>
-        <Group title="工具与入口">
+        <Group title="도구와 바로가기">
           {tools().map((r) => (
             <RowLink key={r.to} row={r} />
           ))}
         </Group>
-        <Group title="关于">
-          <RowLink row={{ to: "/about", label: `关于 ${SITE.name}`, icon: <IconHeart size={20} /> }} />
-          <RowLink row={{ to: "/changelog", label: "更新日志", icon: <IconSparkles size={20} /> }} dot={changelogDot} />
-          <RowLink row={{ to: "/feedback", label: "意见反馈", icon: <IconMessage size={20} /> }} />
+        <Group title="소개">
+          <RowLink row={{ to: "/about", label: `${SITE.name} 소개`, icon: <IconHeart size={20} /> }} />
+          <RowLink row={{ to: "/changelog", label: "업데이트 기록", icon: <IconSparkles size={20} /> }} dot={changelogDot} />
+          <RowLink row={{ to: "/feedback", label: "피드백", icon: <IconMessage size={20} /> }} />
         </Group>
       </div>
       <div className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[12px] leading-[2] text-ink-4">
         <Link viewTransition to="/terms" className="hover:text-ink-2">{POLICY.terms.name}</Link>
-        <Link viewTransition to="/privacy" className="hover:text-ink-2">隐私说明</Link>
+        <Link viewTransition to="/privacy" className="hover:text-ink-2">개인정보 처리방침</Link>
         <a href="/feed.xml" className="hover:text-ink-2">RSS</a>
-        {SITE.github && <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="hover:text-ink-2">GitHub 开源</a>}
+        {SITE.github && <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="hover:text-ink-2">GitHub 오픈소스</a>}
         {SITE.icp && <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="hover:text-ink-2">{SITE.icp}</a>}
       </div>
     </div>

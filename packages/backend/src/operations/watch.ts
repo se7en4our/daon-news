@@ -13,10 +13,10 @@ const WORKER_DOWN: Finding = {
   key: "worker",
   level: "now",
   owner: true,
-  title: "后台处理服务停了，网站不会出现新内容",
-  impact: "新内容的采集、处理、推送和日报全部暂停，网站停在旧内容上",
-  heals: "系统自动重启没有成功",
-  action: "尽快发起一次维护处理",
+  title: "백그라운드 처리 서비스가 멈춰 사이트에 새 콘텐츠가 올라오지 않습니다",
+  impact: "새 콘텐츠의 수집·처리·푸시·데일리 브리핑이 모두 중단되어, 사이트가 옛 콘텐츠에 멈춰 있습니다",
+  heals: "시스템 자동 재시작이 성공하지 못했습니다",
+  action: "가능한 한 빨리 유지보수 처리를 한 번 실행하세요",
 };
 
 /**
@@ -39,7 +39,7 @@ export async function checkWorkerHeartbeat(): Promise<void> {
     let tell = false;
     let msg: { title: string; lines: string[] } | null = null;
     if (stale) {
-      const down: Finding = { ...WORKER_DOWN, detail: `worker 心跳停在 ${beijingStamp(hb.updated_at)}；${ALERTS.workerLogs}`, since: hb.updated_at };
+      const down: Finding = { ...WORKER_DOWN, detail: `worker 하트비트가 ${beijingStamp(hb.updated_at)}에 멈췄습니다. ${ALERTS.workerLogs}`, since: hb.updated_at };
       const r = responder();
       const handed = r ? await r.raise(down, now) : down;
       tell = told || !!handed;

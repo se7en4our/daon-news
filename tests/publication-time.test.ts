@@ -41,9 +41,9 @@ const get = async (url: string) => {
 
 test("the Markdown export names the collection time as such when the publication time is unknown", async () => {
   const undated = await get(`/items/${ids.undated}/markdown`);
-  assert.ok(undated.includes(`- 收录时间：${discovered.toISOString()}`));
-  assert.ok(!undated.includes("发布时间"));
-  assert.ok((await get(`/items/${ids.dated}/markdown`)).includes(`- 发布时间：${published.toISOString()}`));
+  assert.ok(undated.includes(`- 수집 시간: ${discovered.toISOString()}`));
+  assert.ok(!undated.includes("발행 시간"));
+  assert.ok((await get(`/items/${ids.dated}/markdown`)).includes(`- 발행 시간: ${published.toISOString()}`));
 });
 
 test("RSS gives no pubDate for an item without a known publication time", async () => {

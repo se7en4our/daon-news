@@ -65,7 +65,7 @@ test("malformed multipart and screenshots above the existing backend limit are r
   const before = await files();
   const noise = await upload(fakePng(6 * 1024 * 1024), "203.0.113.216");
   assert.equal(noise.statusCode, 400);
-  assert.match(noise.json().detail, /无法识别/);
+  assert.match(noise.json().detail, /인식할 수 없/);
   assert.equal(await files(), before, "nothing is stored");
 });
 
