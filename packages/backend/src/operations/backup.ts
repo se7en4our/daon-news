@@ -111,7 +111,7 @@ export async function runBackup(now = new Date()) {
     });
   }
   const out: Array<{ key: string; bytes: number; sha256: string }> = [];
-  const bj = new Date(now.getTime() + 8 * 3600_000);
+  const bj = new Date(now.getTime() + 9 * 3600_000);
   const prefixes = ["daily"];
   if (bj.getUTCDay() === 0) prefixes.push("weekly");
   if (bj.getUTCDate() === 1) prefixes.push("monthly");

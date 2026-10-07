@@ -186,7 +186,7 @@ export function toFeedItemSummary(row: ItemRow): FeedItemSummary {
  * English (the translator's rule, editorial/translate.ts). Every exit shows such a body as it is.
  */
 export function isChineseBody(a: { language?: string | null; body_text?: string | null }): boolean {
-  return a.language === "zh" || (/[一-鿿]/.test(a.body_text?.slice(0, 400) ?? "") && a.language !== "en");
+  return a.language === "ko" || (/[가-힯]/.test(a.body_text?.slice(0, 400) ?? "") && a.language !== "en");
 }
 
 /** The complete Chinese translation an export (Markdown, full RSS) carries; a page also shows a partial one. */

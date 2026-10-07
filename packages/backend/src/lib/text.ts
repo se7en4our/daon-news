@@ -104,17 +104,17 @@ export function escapeXml(s: string): string {
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
 }
 
-/** Share of CJK characters among letters; used to decide whether a title needs translation. */
+/** Share of Hangul among letters (daon-news: the site language is Korean); used to decide whether a title needs translation. */
 export function cjkRatio(s: string): number {
   const letters = s.match(/[\p{L}]/gu) ?? [];
   if (letters.length === 0) return 0;
-  const cjk = s.match(/[㐀-鿿豈-﫿]/g) ?? [];
+  const cjk = s.match(/[\u{AC00}-\u{D7A3}]/gu) ?? [];
   return cjk.length / letters.length;
 }
 
-export function guessLanguage(s: string): "zh" | "en" | "other" {
+export function guessLanguage(s: string): "ko" | "en" | "other" {
   const ratio = cjkRatio(s);
-  if (ratio > 0.3) return "zh";
+  if (ratio > 0.3) return "ko";
   if (/[a-z]/i.test(s)) return "en";
   return "other";
 }

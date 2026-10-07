@@ -25,14 +25,14 @@ export function num(n: number | string | null | undefined, digits = 0): string {
   if (n === null || n === undefined || n === "") return "—";
   const v = Number(n);
   if (!Number.isFinite(v)) return "—";
-  return v.toLocaleString("zh-CN", { maximumFractionDigits: digits, minimumFractionDigits: digits });
+  return v.toLocaleString("ko-KR", { maximumFractionDigits: digits, minimumFractionDigits: digits });
 }
 
 export function money(n: number | string | null | undefined, currency = "CNY"): string {
   if (n === null || n === undefined) return "—";
   const v = Number(n);
   const sign = currency === "USD" ? "$" : "¥";
-  return `${sign}${v.toLocaleString("zh-CN", { maximumFractionDigits: v < 10 ? 3 : 2, minimumFractionDigits: 2 })}`;
+  return `${sign}${v.toLocaleString("ko-KR", { maximumFractionDigits: v < 10 ? 3 : 2, minimumFractionDigits: 2 })}`;
 }
 
 export function duration(from: string | null, to: string | null): string {

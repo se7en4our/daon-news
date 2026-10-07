@@ -48,7 +48,7 @@ export interface TranslateResult {
   reason?: string;
 }
 
-const isChinese = (language: string | null, sample: string) => language === "zh" || (/[一-鿿]/.test(sample.slice(0, 400)) && language !== "en");
+const isChinese = (language: string | null, sample: string) => language === "ko" || (/[가-힯]/.test(sample.slice(0, 400)) && language !== "en");
 
 /** Leaf text blocks of a sanitised body, in document order, skipping code. */
 function segmentsOf($: cheerio.CheerioAPI): Element[] {
@@ -180,7 +180,7 @@ export async function translateArticle(articleId: string): Promise<TranslateResu
     const text = String(row.x_post?.text ?? row.body_text ?? "").trim();
     if (isEmptyOrLinkOnly(text)) return result({ status: "skipped", reason: "no text to translate" });
     const meaningful = collapseWhitespace(text.replace(/https?:\/\/\S+/g, ""));
-    if (isChinese(row.language, text)) return result({ status: "skipped", reason: "already Chinese" });
+    if (isChinese(row.language, text)) return result({ status: "skipped", reason: "already Korean" });
     if (meaningful.length < X_MIN_CHARS) return result({ status: "skipped", reason: "short post" });
     const translated = await translateAll(articleId, row.revision, [text], SYSTEM_POST);
     const [t] = translated.translations;
@@ -246,10 +246,10 @@ async function store(articleId: string, revision: number, title: string, html: s
   });
 }
 
-/** A quoted post worth translating: at least a few letters beyond its links, and not already Chinese. */
+/** A quoted post worth translating: at least a few letters beyond its links, and not already Korean. */
 function quoteTranslatable(text: string): boolean {
   const words = collapseWhitespace(text.replace(/https?:\/\/\S+/g, " "));
-  return words.length >= 10 && (words.match(/\p{L}/gu) ?? []).length >= 2 && !/[一-鿿]/.test(words);
+  return words.length >= 10 && (words.match(/\p{L}/gu) ?? []).length >= 2 && !/[가-힯]/.test(words);
 }
 
 /**

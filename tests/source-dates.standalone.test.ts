@@ -9,17 +9,17 @@ import { parseLooseDate } from "@aihot/backend/sources/dates";
 const iso = (v: string, offset?: string) => parseLooseDate(v, offset)?.toISOString() ?? null;
 
 test("a date and time without a zone is in the source's offset, not the server's", () => {
-  assert.equal(iso("2026-09-26 10:00"), "2026-09-26T02:00:00.000Z");
-  assert.equal(iso("2026-09-26T10:00:00"), "2026-09-26T02:00:00.000Z");
-  assert.equal(iso("2026/09/26 10:00"), "2026-09-26T02:00:00.000Z");
-  assert.equal(iso("2026年9月26日 10:00"), "2026-09-26T02:00:00.000Z");
+  assert.equal(iso("2026-09-26 10:00"), "2026-09-26T01:00:00.000Z");
+  assert.equal(iso("2026-09-26T10:00:00"), "2026-09-26T01:00:00.000Z");
+  assert.equal(iso("2026/09/26 10:00"), "2026-09-26T01:00:00.000Z");
+  assert.equal(iso("2026年9月26日 10:00"), "2026-09-26T01:00:00.000Z");
   assert.equal(iso("2026-09-26 10:00", "-07:00"), "2026-09-26T17:00:00.000Z");
 });
 
 test("a bare date is midnight in the source's offset; an ISO date alone stays UTC midnight", () => {
-  assert.equal(iso("2026/09/26"), "2026-09-25T16:00:00.000Z");
-  assert.equal(iso("2026年9月26日"), "2026-09-25T16:00:00.000Z");
-  assert.equal(iso("Sep 26, 2026"), "2026-09-25T16:00:00.000Z");
+  assert.equal(iso("2026/09/26"), "2026-09-25T15:00:00.000Z");
+  assert.equal(iso("2026年9月26日"), "2026-09-25T15:00:00.000Z");
+  assert.equal(iso("Sep 26, 2026"), "2026-09-25T15:00:00.000Z");
   assert.equal(iso("2026-09-26"), "2026-09-26T00:00:00.000Z");
   assert.equal(iso("September 26th, 2026", "+00:00"), "2026-09-26T00:00:00.000Z");
 });
@@ -45,8 +45,8 @@ test("English wall-clock dates are not shifted by the host's daylight-saving gap
       assert.equal(iso("8 March 2026 02:30:45", "+08:00"), "2026-03-07T18:30:45.000Z", tz);
       assert.equal(iso("March 29th, 2026 02:30", "+00:00"), "2026-03-29T02:30:00.000Z", tz);
       assert.equal(iso("29 Mar 2026 02:30", "-07:00"), "2026-03-29T09:30:00.000Z", tz);
-      assert.equal(iso("Sep 26, 2026 10:00 PM"), "2026-09-26T14:00:00.000Z", tz);
-      assert.equal(iso("Sep 26, 2026"), "2026-09-25T16:00:00.000Z", tz);
+      assert.equal(iso("Sep 26, 2026 10:00 PM"), "2026-09-26T13:00:00.000Z", tz);
+      assert.equal(iso("Sep 26, 2026"), "2026-09-25T15:00:00.000Z", tz);
       assert.equal(iso("Feb 30, 2026 02:30", "+00:00"), null, tz);
       assert.equal(iso("Mar 8, 2026 25:30", "+00:00"), null, tz);
     }
@@ -77,8 +77,8 @@ test("English times with explicit zones retain their zone on every host", () => 
 });
 
 test("CST, which Chinese pages print for China time, is read in the source's offset", () => {
-  assert.equal(iso("2026-09-26 10:00:00 CST"), "2026-09-26T02:00:00.000Z");
-  assert.equal(iso("Sep 26, 2026 10:00 PM CST"), "2026-09-26T14:00:00.000Z");
+  assert.equal(iso("2026-09-26 10:00:00 CST"), "2026-09-26T01:00:00.000Z");
+  assert.equal(iso("Sep 26, 2026 10:00 PM CST"), "2026-09-26T13:00:00.000Z");
   assert.equal(iso("2026-09-26 10:00 CST", "-06:00"), "2026-09-26T16:00:00.000Z");
 });
 
@@ -91,7 +91,7 @@ test("an article page's publication time without a zone is the same moment acros
   };
   try {
     for (const tz of ["UTC", "Asia/Shanghai"]) {
-      assert.equal(read(tz, "2026-09-26T10:00:00"), "2026-09-26T02:00:00.000Z", tz);
+      assert.equal(read(tz, "2026-09-26T10:00:00"), "2026-09-26T01:00:00.000Z", tz);
       assert.equal(read(tz, "2026-09-26T10:00:00", "+00:00"), "2026-09-26T10:00:00.000Z", tz);
       assert.equal(read(tz, "2026-09-26T10:00:00+09:00", "+00:00"), "2026-09-26T01:00:00.000Z", tz);
     }

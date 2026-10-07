@@ -108,13 +108,13 @@ export default function TopicRoute() {
           <p className="mt-1.5 text-pretty text-[13.5px] leading-relaxed text-ink-3">{topic.definition}</p>
           <p className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-ink-4">
             <span>
-              <span className="num font-semibold text-ink-2">{topic.total.toLocaleString("zh-CN")}</span>{` ${REPORTS.metricUnits.selectedCount}`}
+              <span className="num font-semibold text-ink-2">{topic.total.toLocaleString("ko-KR")}</span>{` ${REPORTS.metricUnits.selectedCount}`}
             </span>
             <span>
-              近 30 天 <span className="num font-semibold text-ink-2">{topic.recent.toLocaleString("zh-CN")}</span> 条
+              近 30 天 <span className="num font-semibold text-ink-2">{topic.recent.toLocaleString("ko-KR")}</span> 条
             </span>
             <span>
-              共收录 <span className="num font-semibold text-ink-2">{topic.poolTotal.toLocaleString("zh-CN")}</span> 条
+              共收录 <span className="num font-semibold text-ink-2">{topic.poolTotal.toLocaleString("ko-KR")}</span> 条
             </span>
           </p>
         </div>
@@ -139,7 +139,7 @@ export default function TopicRoute() {
           <EmptyState title="这个主题暂时还没有精选内容" />
         </div>
       ) : (
-        <DayList items={items} headerAside={<span className="num whitespace-nowrap">第 {first}–{last} 条<span className="hidden sm:inline"> · 共 {topic.total.toLocaleString("zh-CN")} 条</span></span>} />
+        <DayList items={items} headerAside={<span className="num whitespace-nowrap">第 {first}–{last} 条<span className="hidden sm:inline"> · 共 {topic.total.toLocaleString("ko-KR")} 条</span></span>} />
       )}
       <Pagination page={page} pageCount={pageCount} href={href} />
     </div>

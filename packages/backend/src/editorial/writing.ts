@@ -21,18 +21,17 @@ export function clampText(s: string, maxChars: number): string {
   return codepoints.length <= maxChars ? s : codepoints.slice(0, maxChars).join("") + "…";
 }
 
+// daon-news fork: the site language is Korean, so "looks like the site language" means Hangul.
+// The name is kept from upstream to keep merges small.
 export function looksZh(s: string): boolean {
-  if (!/[一-鿿]/.test(s)) return false;
-  if (/[぀-ヿ]/.test(s)) return false; // Japanese kana
-  if (/[가-힯]/.test(s)) return false; // Hangul
-  return true;
+  return /[가-힯]/.test(s);
 }
 
-/** Short tweet: under 100 characters of Chinese, under 500 of other text. */
+/** Short tweet: under 140 characters of Korean, under 500 of other text. */
 export function isShortTweet(text: string): boolean {
   if (!text) return false;
-  const cjk = (text.match(/[一-鿿]/g) || []).length;
-  return text.length < (cjk > text.length * 0.3 ? 100 : 500);
+  const hangul = (text.match(/[가-힯]/g) || []).length;
+  return text.length < (hangul > text.length * 0.3 ? 140 : 500);
 }
 
 /** HTML, URLs (whose /2025/ paths models took for years) and entities out of article text. */
@@ -53,7 +52,7 @@ export function cleanArticleTextForLLM(s: string): string {
 }
 
 function chineseDensity(s: string): number {
-  const chinese = (s.match(/[一-鿿]/g) ?? []).length;
+  const chinese = (s.match(/[가-힯]/g) ?? []).length; // Hangul in this fork
   const total = s.replace(/\s+/g, "").length;
   return total === 0 ? 0 : chinese / total;
 }
@@ -276,7 +275,7 @@ const sourceName = (name?: string) => name?.trim() || "（未注明）";
 
 function anchorDate(d: Date | undefined): string {
   if (!d || Number.isNaN(d.getTime())) return "未注明";
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
 }
 
 export function buildArticlePrompt(input: TranslateInput): string {

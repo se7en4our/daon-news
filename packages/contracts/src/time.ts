@@ -1,6 +1,6 @@
-// Beijing (Asia/Shanghai, fixed UTC+8, no DST) calendar helpers shared by web and backend.
+// Korea (Asia/Seoul, fixed UTC+9, no DST; renamed from Beijing upstream, helper names kept) calendar helpers shared by web and backend.
 
-const OFFSET_MS = 8 * 3600 * 1000;
+const OFFSET_MS = 9 * 3600 * 1000;
 
 /** YYYY-MM-DD of the instant in Beijing time. */
 export function beijingDate(instant: Date | string | number): string {
@@ -16,12 +16,12 @@ export function beijingTime(instant: Date | string | number): string {
 
 /** UTC instant of 00:00 Beijing on the given calendar day. */
 export function beijingMidnight(date: string): Date {
-  return new Date(Date.parse(`${date}T00:00:00+08:00`));
+  return new Date(Date.parse(`${date}T00:00:00+09:00`));
 }
 
 /** UTC instant of an HH:mm Beijing time on the given calendar day. */
 export function beijingAt(date: string, time: string): Date {
-  return new Date(Date.parse(`${date}T${time}:00+08:00`));
+  return new Date(Date.parse(`${date}T${time}:00+09:00`));
 }
 
 export function addDays(date: string, days: number): string {
