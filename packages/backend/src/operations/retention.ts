@@ -40,7 +40,10 @@ export async function dailyRetention(now = new Date()) {
   // Feedback screenshots that only wait to be forwarded (the database then keeps just the Feishu image
   // key). The forwarding sweep gives up after a week; anything older is removed, whether or not
   // forwarding ever ran for it. Without the internal chat they are the screenshots themselves and stay.
-  const deletedScreenshots = screenshotsForwarded() ? await removeOlderThan(path.join(config.dataDir, "feedback-screenshots"), 8 * 86400_000, now.getTime()) : 0;
+  // daon-news: the privacy notice keeps feedback (with its optional email) for one year, screenshots included.
+  const yearMs = 365 * 86400_000;
+  const deletedScreenshots = await removeOlderThan(path.join(config.dataDir, "feedback-screenshots"), screenshotsForwarded() ? 8 * 86400_000 : yearMs, now.getTime());
+  const feedback = await sql`DELETE FROM feedback WHERE created_at < ${new Date(now.getTime() - yearMs)}`;
   // Derived caches (proxied images, share cards and posters) are rebuilt on demand.
   const prunedCache = (await removeOlderThan(path.join(config.dataDir, "imgcache"), monthMs, now.getTime())) + (await removeOlderThan(path.join(config.dataDir, "ogcache"), monthMs, now.getTime()));
   return {
@@ -48,6 +51,7 @@ export async function dailyRetention(now = new Date()) {
     deletedLeases: leases.count,
     deletedJobRuns: runs.count,
     deletedScreenshots,
+    deletedFeedback: feedback.count,
     prunedCache,
   };
 }

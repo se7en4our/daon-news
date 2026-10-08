@@ -133,6 +133,16 @@ test("screenshots left behind are removed after a week, whether or not forwardin
   assert.ok(existsSync(recent), "a screenshot still waiting for forwarding stays");
 });
 
+test("feedback older than a year is deleted, as the privacy notice says; newer feedback stays", async () => {
+  const [old] = await sql<{ id: number }[]>`
+    INSERT INTO feedback (content, email, source_hash, created_at) VALUES (${`old ${T}`}, ${"a@example.com"}, ${`old:${T}`}, now() - interval '366 days') RETURNING id`;
+  const [fresh] = await sql<{ id: number }[]>`
+    INSERT INTO feedback (content, source_hash, created_at) VALUES (${`fresh ${T}`}, ${`fresh:${T}`}, now() - interval '300 days') RETURNING id`;
+  assert.ok((await dailyRetention()).deletedFeedback >= 1);
+  const left = await sql<{ id: number }[]>`SELECT id FROM feedback WHERE id IN ${sql([old!.id, fresh!.id])}`;
+  assert.deepEqual(left.map((r) => r.id), [fresh!.id]);
+});
+
 test("imported feedback that was never forwarded is not sent now", async () => {
   const [row] = await sql<{ id: number }[]>`
     INSERT INTO feedback (content, source_hash, created_at) VALUES (${`旧反馈 ${T}`}, ${`imported:${T}`}, now() - interval '10 minutes') RETURNING id`;
