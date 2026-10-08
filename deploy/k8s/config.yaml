@@ -14,8 +14,7 @@ data:
   # nginx ingress sits in front and sets X-Forwarded-For.
   TRUST_PROXY: "true"
   INGEST_RATE_LIMIT: "10"
-  # LiteLLM proxy (OpenAI-compatible; OpenAI/Bedrock behind it).
-  LLM_BASE_URL: https://llm.trizesolutions.com/v1
+  # LiteLLM proxy (OpenAI-compatible; OpenAI/Bedrock behind it). Its address is in daon-news-secrets.
   LLM_MODEL: REPLACE_WITH_LITELLM_MODEL_NAME
   LLM_EXTRA_JSON: "{}"
   # Safety valves: only "true" turns them on.

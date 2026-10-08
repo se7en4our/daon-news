@@ -6,6 +6,7 @@
 # kubectl -n news patch secret daon-news-secrets instead.
 set -eu
 : "${LLM_API_KEY:?set LLM_API_KEY (the daon-news virtual key issued by the LiteLLM proxy)}"
+: "${LLM_BASE_URL:?set LLM_BASE_URL (the LiteLLM proxy, e.g. https://<host>/v1)}"
 
 hex() { openssl rand -hex "$1"; }
 
@@ -15,6 +16,7 @@ kubectl -n news create secret generic daon-news-secrets \
   --from-literal=ADMIN_PASSWORD="$(hex 12)" \
   --from-literal=SESSION_SECRET="$(hex 32)" \
   --from-literal=IMG_PROXY_SIGN_SECRET="$(hex 32)" \
+  --from-literal=LLM_BASE_URL="$LLM_BASE_URL" \
   --from-literal=LLM_API_KEY="$LLM_API_KEY" \
   --from-literal=TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}" \
   --from-literal=SMTP_HOST="${SMTP_HOST:-}" \
