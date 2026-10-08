@@ -208,7 +208,7 @@ export interface AdminFeedbackRow {
   email: string | null;
   page_url: string | null;
   /** local (viewable here until forwarded), feishu (in the internal chat), gone (could not be forwarded), or null. */
-  screenshot: "local" | "feishu" | "gone" | null;
+  screenshot: "local" | "s3" | "feishu" | "gone" | null;
   source_hash: string;
   status: string;
   note: string | null;

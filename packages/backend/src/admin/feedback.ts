@@ -1,10 +1,12 @@
 // Feedback handling: list, status and note, per-source bans, and deletion on request
 // (privacy notice: feedback material is removed once handling ends or when the sender asks).
 import type { AdminFeedback, BeforeJson } from "@aihot/contracts/admin";
-import { unlink } from "node:fs/promises";
+import { readFile, unlink } from "node:fs/promises";
 import path from "node:path";
 import { config } from "../config.ts";
 import { sql } from "../db.ts";
+import { deleteObject, getObject } from "../lib/object-store.ts";
+import { screenshotObjectKey } from "../operations/feedback.ts";
 import { audit, Conflict } from "../audit.ts";
 
 export const FEEDBACK_STATUSES = ["new", "triaged", "replied", "resolved", "spam"] as const;
@@ -64,6 +66,19 @@ export async function feedbackScreenshot(id: number): Promise<string | null> {
   return screenshotPath(row?.screenshot_key ?? null);
 }
 
+const MIME: Record<string, string> = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", webp: "image/webp", gif: "image/gif" };
+
+/** The screenshot's bytes and type, wherever it is kept (a local file or the object store). */
+export async function feedbackScreenshotData(id: number): Promise<{ data: Buffer; mime: string } | null> {
+  const [row] = await sql<{ screenshot_key: string | null }[]>`SELECT screenshot_key FROM feedback WHERE id = ${id}`;
+  const key = row?.screenshot_key ?? null;
+  const name = key?.startsWith("s3:") ? key.slice(3) : key?.startsWith("local:") ? key.slice(6) : null;
+  if (!name || !/^[\w.-]+$/.test(name)) return null;
+  const mime = MIME[name.split(".").pop()!.toLowerCase()] ?? "application/octet-stream";
+  const data = key!.startsWith("s3:") ? await getObject(screenshotObjectKey(name)) : await readFile(screenshotPath(key)!).catch(() => null);
+  return data ? { data, mime } : null;
+}
+
 /** Removes the sender's material (text, email, page, screenshot) and keeps only the handling record. */
 export async function eraseFeedback(id: number, reason: string, actor: string) {
   if (!reason.trim()) throw new Error("reason is required");
@@ -71,6 +86,7 @@ export async function eraseFeedback(id: number, reason: string, actor: string) {
   if (!row) return null;
   const file = screenshotPath(row.screenshot_key);
   if (file) await unlink(file).catch(() => {});
+  if (row.screenshot_key?.startsWith("s3:") && /^[\w.-]+$/.test(row.screenshot_key.slice(3))) await deleteObject(screenshotObjectKey(row.screenshot_key.slice(3)));
   await sql`UPDATE feedback SET content = '(요청에 따라 삭제됨)', email = NULL, page_url = NULL, screenshot_key = NULL, updated_at = now() WHERE id = ${id}`;
   await audit(actor, "feedback.erase", `feedback:${id}`, reason, null, null);
   return { erased: true };

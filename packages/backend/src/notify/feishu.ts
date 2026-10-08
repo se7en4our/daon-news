@@ -7,6 +7,8 @@ import path from "node:path";
 import { beijingDate, beijingTime } from "@aihot/contracts/time";
 import { config, credential } from "../config.ts";
 import { sql } from "../db.ts";
+import { deleteObject, getObject } from "../lib/object-store.ts";
+import { screenshotObjectKey } from "../operations/feedback.ts";
 
 const API = "https://open.feishu.cn/open-apis";
 
@@ -145,24 +147,27 @@ async function screenshotFor(fb: { id: number; screenshot_key: string | null; cr
   if (key?.startsWith("feishu:")) return { imageKey: key.slice("feishu:".length), note: null };
   if (key === "gone:upload") return { imageKey: null, note: "(스크린샷을 업로드하지 못해 삭제했습니다)" };
   if (key === "gone:missing") return { imageKey: null, note: "(스크린샷 파일이 더 이상 존재하지 않습니다)" };
-  if (!key?.startsWith("local:")) return { imageKey: null, note: null };
-  const file = path.join(config.dataDir, "feedback-screenshots", key.slice("local:".length));
-  const data = await readFile(file).catch(() => null);
+  const inStore = key?.startsWith("s3:") ?? false;
+  if (!key?.startsWith("local:") && !inStore) return { imageKey: null, note: null };
+  const name = key!.slice(key!.indexOf(":") + 1);
+  const file = path.join(config.dataDir, "feedback-screenshots", name);
+  const remove = () => (inStore ? deleteObject(screenshotObjectKey(name)) : unlink(file)).catch(() => {});
+  const data = inStore ? await getObject(screenshotObjectKey(name)).catch(() => null) : await readFile(file).catch(() => null);
   if (!data) {
     await sql`UPDATE feedback SET screenshot_key = 'gone:missing' WHERE id = ${fb.id}`;
     return { imageKey: null, note: "(스크린샷 파일이 더 이상 존재하지 않습니다)" };
   }
   try {
-    const imageKey = await uploadImage(data, path.basename(file));
+    const imageKey = await uploadImage(data, name);
     await sql`UPDATE feedback SET screenshot_key = ${`feishu:${imageKey}`} WHERE id = ${fb.id}`;
-    await unlink(file).catch(() => {});
+    await remove();
     return { imageKey, note: null };
   } catch (error) {
     // The forwarding sweep tries again; after a day, or at once when Feishu refuses the picture itself,
     // the text goes without it.
     if (!(error instanceof ImageRefusedError) && Date.now() - fb.created_at.getTime() < SCREENSHOT_GIVE_UP_MS) throw error;
     await sql`UPDATE feedback SET screenshot_key = 'gone:upload' WHERE id = ${fb.id}`;
-    await unlink(file).catch(() => {});
+    await remove();
     return { imageKey: null, note: "(스크린샷을 업로드하지 못해 삭제했습니다)" };
   }
 }

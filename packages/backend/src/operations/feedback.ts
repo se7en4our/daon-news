@@ -7,6 +7,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 import { config, credential } from "../config.ts";
+import { objectStore, putObject } from "../lib/object-store.ts";
 import { sql } from "../db.ts";
 import { serverModules } from "../modules.ts";
 import { feishuInternalEnabled, forwardFeedbackToFeishu } from "../notify/feishu.ts";
@@ -85,10 +86,16 @@ export async function submitFeedback(input: FeedbackInput): Promise<{ id: number
     // the database keeps only an identifier.
     // Forwarding or erasing one feedback removes its file, even if another used the same picture.
     const name = `${randomUUID()}.${mime.split("/")[1]}`;
-    const dir = path.join(config.dataDir, "feedback-screenshots");
-    await mkdir(dir, { recursive: true });
-    await writeFile(path.join(dir, name), input.screenshot.data);
-    screenshotKey = `local:${name}`;
+    if (objectStore()) {
+      // daon-news: no persistent volume; the object store keeps the screenshot (s3:<name>).
+      await putObject(screenshotObjectKey(name), input.screenshot.data, mime);
+      screenshotKey = `s3:${name}`;
+    } else {
+      const dir = path.join(config.dataDir, "feedback-screenshots");
+      await mkdir(dir, { recursive: true });
+      await writeFile(path.join(dir, name), input.screenshot.data);
+      screenshotKey = `local:${name}`;
+    }
   }
   const [row] = await sql<{ id: number }[]>`
     INSERT INTO feedback (content, email, page_url, screenshot_key, source_hash, forward_error)
@@ -128,3 +135,6 @@ export async function forwardPendingFeedback(): Promise<{ sent: number; failed: 
   }
   return { sent, failed };
 }
+
+/** Where an s3: screenshot is kept in the object store. */
+export const screenshotObjectKey = (name: string) => `feedback-screenshots/${name}`;

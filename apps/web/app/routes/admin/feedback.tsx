@@ -40,7 +40,7 @@ function FeedbackCard({ f }: { f: AdminFeedbackRow }) {
         )}
       </div>
       <p className="mt-2.5 whitespace-pre-wrap text-[14px] leading-relaxed text-ink">{f.content}</p>
-      {f.screenshot === "local" && (
+      {(f.screenshot === "local" || f.screenshot === "s3") && (
         <a href={`${base}/screenshot`} target="_blank" rel="noreferrer" className="mt-2 inline-block">
           <img src={`${base}/screenshot`} alt="피드백 스크린샷" loading="lazy" className="max-h-48 rounded-control ring-1 ring-line" />
         </a>

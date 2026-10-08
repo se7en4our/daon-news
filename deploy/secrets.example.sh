@@ -17,6 +17,8 @@ kubectl -n news create secret generic daon-news-secrets \
   --from-literal=SESSION_SECRET="$(hex 32)" \
   --from-literal=IMG_PROXY_SIGN_SECRET="$(hex 32)" \
   --from-literal=LLM_BASE_URL="$LLM_BASE_URL" \
+  --from-literal=DB_BACKUP_STORE_SECRET_ID="${DB_BACKUP_STORE_SECRET_ID:?OCI customer secret key id}" \
+  --from-literal=DB_BACKUP_STORE_SECRET_KEY="${DB_BACKUP_STORE_SECRET_KEY:?OCI customer secret key}" \
   --from-literal=LLM_API_KEY="$LLM_API_KEY" \
   --from-literal=TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}" \
   --from-literal=SMTP_HOST="${SMTP_HOST:-}" \

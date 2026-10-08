@@ -24,6 +24,11 @@ data:
   FEISHU_INTERNAL_ENABLED: "false"
   INDEXNOW_SUBMIT_ENABLED: "false"
   DATABASE_POOL_MAX: "10"
+  # OCI Object Storage (S3-compatible, path style): daily backups (daily/ weekly/ monthly/) and feedback
+  # screenshots (feedback-screenshots/). The access key pair is in daon-news-secrets.
+  DB_BACKUP_STORE_BUCKET: daon-news
+  DB_BACKUP_STORE_REGION: ap-chuncheon-1
+  DB_BACKUP_STORE_DOMAIN: axbeonwnkylm.compat.objectstorage.ap-chuncheon-1.oraclecloud.com/daon-news
   # News subscriptions (modules/subscribe): turn on once the secrets below exist.
   TELEGRAM_PUSH_ENABLED: "false"
   TELEGRAM_CHANNEL_ID: "@REPLACE_CHANNEL"

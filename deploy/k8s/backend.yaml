@@ -1,20 +1,7 @@
-# api + worker in one Pod: both read and write the same /data (uploads, feedback screenshots, image
-# cache, backups) and the volume is ReadWriteOnce. The setup step (migrations + demo sources) of
+# api + worker in one Pod sharing /data. /data holds only rebuildable caches (images, share cards,
+# sitemap) and the backup staging files, so it is an emptyDir: feedback screenshots and the daily
+# backups go to OCI Object Storage (DB_BACKUP_STORE_*), and the only block volume is the database's. The setup step (migrations + demo sources) of
 # docker-compose runs as an init container before both start, on every rollout (it is idempotent).
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: daon-news-data
-  namespace: news
-  annotations:
-    argocd.argoproj.io/sync-options: Prune=false,Delete=false
-spec:
-  accessModes: [ReadWriteOnce]
-  storageClassName: oci-bv-paravirtualized
-  resources:
-    requests:
-      storage: 50Gi
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -84,7 +71,7 @@ spec:
           volumeMounts: *dataMount
       volumes:
         - name: data
-          persistentVolumeClaim: { claimName: daon-news-data }
+          emptyDir: { sizeLimit: 2Gi }
 ---
 apiVersion: v1
 kind: Service

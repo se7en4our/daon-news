@@ -3,8 +3,9 @@
 import { readdir, stat, unlink } from "node:fs/promises";
 import path from "node:path";
 import { config } from "../config.ts";
+import { deleteObject } from "../lib/object-store.ts";
 import { sql } from "../db.ts";
-import { screenshotsForwarded } from "./feedback.ts";
+import { screenshotObjectKey, screenshotsForwarded } from "./feedback.ts";
 import { serverModules } from "../modules.ts";
 
 /** Removes files under `dir` last written more than `maxAgeMs` ago. */
@@ -43,7 +44,10 @@ export async function dailyRetention(now = new Date()) {
   // daon-news: the privacy notice keeps feedback (with its optional email) for one year, screenshots included.
   const yearMs = 365 * 86400_000;
   const deletedScreenshots = await removeOlderThan(path.join(config.dataDir, "feedback-screenshots"), screenshotsForwarded() ? 8 * 86400_000 : yearMs, now.getTime());
-  const feedback = await sql`DELETE FROM feedback WHERE created_at < ${new Date(now.getTime() - yearMs)}`;
+  const feedback = await sql<{ screenshot_key: string | null }[]>`DELETE FROM feedback WHERE created_at < ${new Date(now.getTime() - yearMs)} RETURNING screenshot_key`;
+  for (const { screenshot_key: key } of feedback) {
+    if (key?.startsWith("s3:") && /^[\w.-]+$/.test(key.slice(3))) await deleteObject(screenshotObjectKey(key.slice(3))).catch(() => {});
+  }
   // Derived caches (proxied images, share cards and posters) are rebuilt on demand.
   const prunedCache = (await removeOlderThan(path.join(config.dataDir, "imgcache"), monthMs, now.getTime())) + (await removeOlderThan(path.join(config.dataDir, "ogcache"), monthMs, now.getTime()));
   return {
