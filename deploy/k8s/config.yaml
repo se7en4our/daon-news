@@ -25,3 +25,9 @@ data:
   FEISHU_INTERNAL_ENABLED: "false"
   INDEXNOW_SUBMIT_ENABLED: "false"
   DATABASE_POOL_MAX: "10"
+  # News subscriptions (modules/subscribe): turn on once the secrets below exist.
+  TELEGRAM_PUSH_ENABLED: "false"
+  TELEGRAM_CHANNEL_ID: "@REPLACE_CHANNEL"
+  EMAIL_PUSH_ENABLED: "false"
+  SMTP_PORT: "587"
+  MAIL_FROM: "DaON News <news@daon.cloud>"
