@@ -1,0 +1,27 @@
+# news.daon.cloud — non-secret settings shared by api, worker and web.
+# Secrets live in the daon-news-secrets Secret, created outside git (deploy/secrets.example.sh).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: daon-news-config
+  namespace: news
+data:
+  NODE_ENV: production
+  TZ: Asia/Seoul
+  SITE_URL: https://news.daon.cloud
+  API_BASE_URL: http://daon-news-api:3001
+  AIHOT_DATA_DIR: /data
+  # nginx ingress sits in front and sets X-Forwarded-For.
+  TRUST_PROXY: "true"
+  INGEST_RATE_LIMIT: "10"
+  # LiteLLM proxy (OpenAI-compatible; OpenAI/Bedrock behind it).
+  LLM_BASE_URL: https://llm.trizesolutions.com/v1
+  LLM_MODEL: REPLACE_WITH_LITELLM_MODEL_NAME
+  LLM_EXTRA_JSON: "{}"
+  # Safety valves: only "true" turns them on.
+  COLLECT_ENABLED: "true"
+  MODEL_CALLS_ENABLED: "true"
+  FEISHU_CONTENT_PUSH_ENABLED: "false"
+  FEISHU_INTERNAL_ENABLED: "false"
+  INDEXNOW_SUBMIT_ENABLED: "false"
+  DATABASE_POOL_MAX: "10"

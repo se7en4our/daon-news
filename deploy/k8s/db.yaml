@@ -1,0 +1,70 @@
+# PostgreSQL 17 for daon-news only (not shared with matchplus/guacamole).
+# Same pattern as the other single-instance DBs in the cluster: Deployment + Recreate + RWO PVC.
+# The storage class reclaims with Delete: deleting this PVC deletes the data. Keep backups.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: daon-news-db-data
+  namespace: news
+  annotations:
+    # Never let Argo CD prune the data volume.
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: oci-bv-paravirtualized # in-transit encrypted node pool; oci-bv (iscsi) fails to attach
+  resources:
+    requests:
+      storage: 50Gi # OCI block volume minimum
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: daon-news-db
+  namespace: news
+  labels: { app: daon-news-db }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector: { matchLabels: { app: daon-news-db } }
+  template:
+    metadata: { labels: { app: daon-news-db } }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 70 # postgres in the alpine image
+        runAsGroup: 70
+        fsGroup: 70
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          ports: [{ containerPort: 5432 }]
+          env:
+            - { name: POSTGRES_USER, value: aihot }
+            - { name: POSTGRES_DB, value: aihot }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: daon-news-secrets, key: POSTGRES_PASSWORD } }
+            - { name: PGDATA, value: /var/lib/postgresql/data/pgdata }
+          readinessProbe:
+            exec: { command: ["pg_isready", "-U", "aihot", "-d", "aihot"] }
+            periodSeconds: 5
+          livenessProbe:
+            exec: { command: ["pg_isready", "-U", "aihot", "-d", "aihot"] }
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { cpu: "1", memory: 1Gi }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: daon-news-db-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: daon-news-db
+  namespace: news
+spec:
+  selector: { app: daon-news-db }
+  ports: [{ port: 5432, targetPort: 5432 }]

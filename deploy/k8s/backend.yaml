@@ -1,0 +1,96 @@
+# api + worker in one Pod: both read and write the same /data (uploads, feedback screenshots, image
+# cache, backups) and the volume is ReadWriteOnce. The setup step (migrations + demo sources) of
+# docker-compose runs as an init container before both start, on every rollout (it is idempotent).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: daon-news-data
+  namespace: news
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: oci-bv-paravirtualized
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: daon-news-backend
+  namespace: news
+  labels: { app: daon-news-backend }
+spec:
+  replicas: 1 # one worker only: schedules and paid model calls must not run twice
+  strategy: { type: Recreate }
+  selector: { matchLabels: { app: daon-news-backend } }
+  template:
+    metadata: { labels: { app: daon-news-backend } }
+    spec:
+      # The worker lets a paid model call in flight finish on stop (STOP_TIMEOUT_MS, 195 s).
+      terminationGracePeriodSeconds: 210
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000 # node user of the image
+        runAsGroup: 1000
+        fsGroup: 1000
+      initContainers:
+        - name: setup
+          image: yny.ocir.io/axbeonwnkylm/chuncheon-prod/daon-news:REPLACE_TAG
+          command: ["sh", "-c", "node scripts/migrate.ts && node scripts/seed.ts"]
+          envFrom: &envFrom
+            - configMapRef: { name: daon-news-config }
+            - secretRef: { name: daon-news-secrets }
+          env: &dbEnv
+            - name: DATABASE_URL
+              value: postgres://aihot:$(POSTGRES_PASSWORD)@daon-news-db:5432/aihot
+          volumeMounts: &dataMount
+            - { name: data, mountPath: /data }
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+      containers:
+        - name: api
+          image: yny.ocir.io/axbeonwnkylm/chuncheon-prod/daon-news:REPLACE_TAG
+          command: ["node", "apps/api/src/main.ts"]
+          envFrom: *envFrom
+          env:
+            - name: DATABASE_URL
+              value: postgres://aihot:$(POSTGRES_PASSWORD)@daon-news-db:5432/aihot
+            - { name: API_HOST, value: 0.0.0.0 }
+            - { name: API_PORT, value: "3001" }
+          ports: [{ containerPort: 3001 }]
+          readinessProbe:
+            httpGet: { path: /api/health, port: 3001 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /api/health, port: 3001 }
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 50m, memory: 192Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          volumeMounts: *dataMount
+        - name: worker
+          image: yny.ocir.io/axbeonwnkylm/chuncheon-prod/daon-news:REPLACE_TAG
+          command: ["node", "apps/worker/src/main.ts"]
+          envFrom: *envFrom
+          env: *dbEnv
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { cpu: "1", memory: 768Mi }
+          volumeMounts: *dataMount
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: daon-news-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: daon-news-api
+  namespace: news
+spec:
+  selector: { app: daon-news-backend }
+  ports: [{ port: 3001, targetPort: 3001 }]

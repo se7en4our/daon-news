@@ -1,0 +1,29 @@
+# Same controller and issuer as www.daon.cloud (msp-homepage/deploy/ingress.yaml): the IngressClass
+# "nginx" is F5 nginx.org/ingress-controller, so annotations are nginx.org/*; certificates come from
+# letsencrypt-prod over DNS-01.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: daon-news
+  namespace: news
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.org/ssl-redirect: "true"
+    # Feedback screenshots and admin uploads.
+    nginx.org/client-max-body-size: "12m"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: ["news.daon.cloud"]
+      secretName: daon-news-tls
+  rules:
+    - host: news.daon.cloud
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: daon-news-web
+                port:
+                  number: 80

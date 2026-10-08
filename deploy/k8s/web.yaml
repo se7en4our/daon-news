@@ -1,0 +1,51 @@
+# SSR web: stateless, reads the api over HTTP and proxies /api, /feed, /mcp … to it, so the ingress
+# only needs this one backend. Backend credentials are not given to this Pod.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: daon-news-web
+  namespace: news
+  labels: { app: daon-news-web }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: daon-news-web } }
+  template:
+    metadata: { labels: { app: daon-news-web } }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: web
+          image: yny.ocir.io/axbeonwnkylm/chuncheon-prod/daon-news:REPLACE_TAG
+          command: ["node", "apps/web/server.ts"]
+          env:
+            - { name: NODE_ENV, value: production }
+            - { name: TZ, value: Asia/Seoul }
+            - { name: API_BASE_URL, value: "http://daon-news-api:3001" }
+            - { name: SITE_URL, value: "https://news.daon.cloud" }
+            - { name: TRUST_PROXY, value: "true" }
+            - { name: WEB_HOST, value: 0.0.0.0 }
+            - { name: WEB_PORT, value: "3000" }
+          ports: [{ containerPort: 3000 }]
+          readinessProbe:
+            httpGet: { path: /api/health, port: 3000 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /api/health, port: 3000 }
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 384Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: daon-news-web
+  namespace: news
+spec:
+  selector: { app: daon-news-web }
+  ports: [{ port: 80, targetPort: 3000 }]

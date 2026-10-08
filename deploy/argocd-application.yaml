@@ -1,0 +1,23 @@
+# Reference copy. The real Application is bootstrapped by Terraform (OCI repo,
+# environments/prod/services/news/), like msp-homepage in services/www/. The repo URL must also be in
+# the daon-prod AppProject's sourceRepos (platform/gitops additional_source_repos).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: daon-news
+  namespace: argocd
+spec:
+  project: daon-prod
+  source:
+    repoURL: https://github.com/se7en4our/daon-news.git
+    targetRevision: main
+    path: deploy/k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: news
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
